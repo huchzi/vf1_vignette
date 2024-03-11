@@ -1,0 +1,371 @@
+---
+title: "VF1 Vignette"
+author: "Cord Huchzermeyer"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+```
+
+The visualFields package facilitates statistical analysis and plotting of visual field data, focussing on static perimetry.
+
+# What is visual field testing?
+Visual field testing is a psychophysical test that measures a patient’s visual ability at different locations of the visual field. This ability is usually highest in the center of the visual field (i.e. the point that the observer looks at) and decreases toward the periphery (hill of vision).
+
+Theoretically, different aspects of vision can be tested at different locations (ability to discriminate dots that are very close to each other, ability to discriminate similar colors, contrast sensitivity), but usually white-on-white perimetry is performed where a white spot is presented on a white background.
+
+The most common type of visual field testing is *perimetry*, which is performed with in a dome-shaped cupule, so that the distance between the stimulus and the eye equal for all locations within the visual field. In contrast, *campimetry* is performed with a flat screen.
+
+Psychophysical tests measure a subjective perception of a physical stimulus by systematically varying the stimulus and asking the observer to communicate his perception with a limited number of allowed responses. In visual field testing, the observer usually presses a button when a light spot is perceived. Usually, psychophysical testing results in a *threshold*, which denotes either the absolute stimulus strength that can just barely be perceived or the smallest difference that can be perceived as different. Real world scenarios where perception is close to threshold include going through a dark forest on a cloudy night or seeing the car in front through a dense fog. Therefore, visual field testing is often considered as tedious by patients and judges as a less reliable examination. The latter is not correct.
+
+The visual fields package was created to analyze data from *static perimetry*, where a threshold is measured for each of a fixed number of locations in a grid pattern. In contrast, in *kinetic perimetry*, a light spot moves from the periphery toward the center along a number of meridians and the location there the spot is first perceivable for the subject is noted.
+
+Different manufacturers have different conventions in perimetry.
+
+# Starting with an example
+
+The visualFields package can be installed from CRAN.
+
+```{r}
+
+library(visualFields)
+# install.packages("visualFields", repos = "https://cloud.r-project.org")
+
+```
+
+## Loading data
+
+The visualField package contains some example data.
+
+```{r}
+
+data(vfpwgSunyiu24d2)
+
+str(vfpwgSunyiu24d2[, 1:6])
+
+```
+This dataset contains the results of 42 visual field tests of one patient (id: sample1). The patient has a chronic-neurodegenerative disease of the optic nerve called primary open-angle glaucoma (type: pwg).
+
+```{r}
+
+head(vfpwgSunyiu24d2, 4)
+
+```
+
+Each row corresponds to one visual field test. Visual field testing was performed monocularly (one eye at a time), so that two examinations exist for each date. 
+
+The abbreviations for the laterality is derived from latin (OD: right eye = oculus dexter, and OS: left eye = oculus sinister), when both eyes are examined, the abbreviation is OU.
+
+For now, not that each column $l_{n}$ corresponds to one location in the visual field test.
+
+# Visual field tests
+For the typical visual field test, the subject or patient is comfortably seated in front of a perimeter and puts his head on a chin rest looking into a white Ganzfeld cupule (or hemisphere). The perimeter is located in a dimly lit, calm room and the subject has been explained what to do by an experienced technician before the examination. In his hand, the subject has a button in order to signal whether he saw a stimulus. 
+
+He now looks at a fixation light right in front of him in the center of the cupule and presses the button as soon as he sees a light appearing anywhere in the cupule. These lights are presented only for a short time span (typically 100-200ms), so that the subject in not tempted to look at the stimulus. Therefore, a press of the button will be linked to a presentation when it occurs within a given time window after the presentation. A computer will present stimuli several times at different locations in a grid pattern. For each location, the stimulus intensity (luminance) will be adjusted depending on the subjects responses, but the presentations will be randomly interleaved between different locations.
+
+The grid, the stimulus size, presentation time and the algorithm responsible for varying intensities remain constant throughout the examination and are called a perimetry program. Not that examinations performed with different programs cannot be directly compared.
+
+# Setting up the environment
+
+A given visual field program has certain properties that remain unchanged during the test. In the visualFields packages these are saved in the *environment*. After setting this environment, you can only analyse data that is consistent with this environment.
+
+The environment contains information on
+
+  - Normative data (nv)
+  - Grid (locmap)
+  - Graphical parameters used for plotting the data (gpar)
+  - Where to find visual field measurements in the tables (locini)
+
+```{r see current environment variables}
+
+getnv()$info
+
+```
+The standard environment assumes a static white-on-white perimetry with a Humphrey perimeter, using a 24-2 grid, a SITA standard algorithm, a stimulus size of Goldman Size III. The stimulus duration and the $L_{max}$ are not explicitly stated in the info.
+
+## Grid
+
+The spatial position of the points $l_1 $to $ln$ in the visual field is found in the locmap and depends on the pattern used by the perimeter. When analysing data, you need to specify the locmap.
+
+By default, the 24-2 pattern which uses locations that are equally spaced across the field is used.
+
+```{r locmaps}
+
+default_locmap <- getlocmap()
+default_locmap$name
+default_locmap$desc
+
+```
+
+Beside a name and a description, a locmap dataset contains a coordinate table with the x- and y- coordinates of the locations measured in degrees, and the id of the points that cover the physiological blind spot (the id is the number x in $l_x$ and corresponds to the row in the coord table). 
+
+```{r}
+
+plot(x = default_locmap$coord$x, 
+     y = default_locmap$coord$y, 
+     type = "point", 
+     asp = 1,
+     xlim = c(-24, 24),
+     ylim = c(-24, 24))
+points(x = default_locmap$coord[default_locmap$bs, "x"],
+       y = default_locmap$coord[default_locmap$bs, "y"],
+       col = "red")
+
+```
+
+Locations of the locmap that cover the blind spot are reported in the locmaps lists under bs. If the blind spot is outside the pattern (for example in the 10° visual fields) or is spared by the grid as in the Octopus G1 pattern, the list item bs is set to numeric(0).
+
+A new locmap can be specified manually or selected from the locmaps dataset included in the package.
+
+```{r}
+
+new_locmap <- locmaps$p10d2
+setlocmap(new_locmap)
+
+```
+
+
+Note that some grids spare the blind spot, either on purpose or because they cover only locations central to the blind spot. In this case, locmap$bs is numeric(0).
+
+```{r}
+
+blind_spot <- getlocmap()$bs
+
+plot(x = new_locmap$coord$x, 
+     y = new_locmap$coord$y, 
+     type = "point", 
+     asp = 1,
+     xlim = c(-24, 24),
+     ylim = c(-24, 24))
+points(x = default_locmap$coord[default_locmap$bs, "x"],
+       y = default_locmap$coord[default_locmap$bs, "y"],
+       col = "red")
+
+```
+
+## Resetting the enviroment
+
+```{r}
+
+setdefaults()
+
+```
+
+## Using environment variables
+
+Note that the visualFields package will always override the local environment from which the call was made.
+
+```{r}
+
+# new_env <- new.env(parent = get)
+
+```
+
+# Pathophysiology of the visual field
+Interindividual variability and age
+Photoreceptors / Retina
+Ganglion cells
+Other factors
+
+# Measurements
+Although usually not seen in visual field data, the most elementary unit of a static visual field test is a subject's response. It consists of the constant stimulus parameters (size, presentation time, background luminance), the stimulus location, the stimulus intensity and whether the subject pressed the button within a predefined time window to indicate that he saw the stimulus.
+
+Below a certain *threshold* luminance, a stimulus is usually not perceivable, above the threshold, the stimulus is usually perceived. However, close to threshold, a stimulus is not always reliably perceived. By definition, the threshold is the luminance of the stimulus where the subject will see the stimulus with a probability of 50%. 
+
+The most straightforward to measure such a threshold would be to present stimuli several time at a number different, fixed stimulus strengths. This method is called the method of *constant stimuli* and results in the *psychometric function*, which is usually modeled with a cumulative distribution function (CDF), for example a Gaussian CDF. However, this is not the most effective way to estimate a threshold, because stimulus strength far from the threshold will have probabilities to be seen that are close to either 0% or 100%. Testing these strengths several times does not yield much information.
+
+Therefore, advanced algorithms were developed for reducing the number of stimulus presentations with limited trade-off concerning the accuracy of the measurements. A staircase algorithm where the intensity is decreased by a certain step size when the stimulus was seen, increased when not seen, and the step size is halved upon each revearsal (seen to not seen or vice versa) is a more efficient algorithms that is frequently used. More efficient algorithms usually make a trade-off between precision of the threshold estimate and test time, and often incorporate information on responses in neighboring locations into the algorithm. Examples include the Swedish Interactive Threshold Algorithm (SITA) of the Humphery Perimeters. Note that long test times negatively affect attention and therefore both accuracy and precision of the threshold estimates.
+
+# Differential light sensitivity and other mathematical derivatives of threshold
+However, the data analyzed with the visual fields package usually consists of the subjects *differential light sensitivity* for a stimulus at a given location in decibel (dB) as the most elementary unit. This sensitivity is calculated from the psychophysical threshold, which is derived from the aforementioned responses at this location.
+
+The light sensitivity [dB] is defined as $10*log_{10}{\frac{L_{max}}{L}}$. Where $L$ is the threshold luminance and $L_{max}$ is the maximal stimulus intensity the perimeter uses. 
+
+The light sensitivity fluctuates considerably between measurements in the same observer, between observers, but it also decreases with age.
+
+## False negatives / positives
+Residual deviation from the psychometric function may occur due to inattention of the observer but also due to short-term fluctuation of the threshold. For example, it has been shown that the threshold underlies short-term fluctuates in the areas where light sensitivity was negatively affected by glaucoma, a disease of the optic nerve.
+
+The cooperation of the subject is also tested in some perimeters by presenting deliberately presenting a stimulus at the location of the *physiological blind spot*. If the subjects sees that stimulus, it must be assumed that he did not fixate correctly (fixation loss) and that the reliability of the field is decreased.
+
+## Defect / Deviation
+
+Clinically it is often more interesting to map the deviation from a theoretical "normal" sensitivity than the absolute sensitivity, because this facilitates the identification of disease. Furthermore, a decline of DLS with age occurs also in normal subjects. Therefore, age-related normative date must be collected which results in a function the describes the relationship between DLS and age for each location in the visual field. This function is usually linear. 
+
+The resulting difference is also measured in dB and is called either *deviaton* (loss of function has a negative sign; used in Humphrey perimeters) or *defect* (loss of function has a positive sign; used in Octopus perimeters). In this package, *deviation* is used, and it is called *total deviation*. Make sure that you get the right sign if you import data. 
+
+In eye diseases like glaucoma, general defects that affect the whole visual field are often less relevant than focal scotomas. Therefore, deviation is sometimes corrected for the average sensitivity of the visual field. This is called *pattern deviation*.
+
+### Sensitivity
+
+```{r sensitivity}
+
+vfpwgSunyiu24d2[1:4, "1:12"]
+
+```
+
+### Total deviation
+
+```{r total deviation}
+
+gettd(vfpwgSunyiu24d2)[1:4, 1:12]
+
+```
+
+### Pattern deviation
+
+```{r pattern deviation}
+
+getpd(vfpwgSunyiu24d2)[1:4, 1:12]
+
+```
+
+## Probabilities
+
+Psychophysical values vary considerably between subjects, but they also fluctuate between measurements. Therefore, deviation will be different from zero most of the time, and the clinician has to know, if a given deviation is likely to be caused by disease, or whether it may just reflect normal variability.
+
+This is calculated based on measurements in the reference population that is also used to calculate the normative data.
+
+### Total deviation
+
+```{r total deviation probabilities}
+
+gettdp(vfpwgSunyiu24d2)[1:4, 1:12]
+
+```
+
+### Pattern deviation
+
+```{r pattern deviation probabilities}
+
+getpdp(vfpwgSunyiu24d2)[1:4, 1:12]
+
+```
+
+# Plotting the visual field
+
+There are different ways to visualize perimetric results. These visualizations have to be interpreted like maps in that they represent a simplified version of the hill of vision.
+
+The most straightforward plots show the sensitivity/total deviation/pattern deviation/probabilitites at the corresponding locations. These representations are very exact, but may be difficult to interpret.
+
+```{r}
+
+setdefaults()
+
+example1 <- vffilter(vfpwgSunyiu24d2, 
+                     id == "sample1" & 
+                       eye == "OD" & 
+                       date == min(vfpwgSunyiu24d2$date))
+vfisvalid(example1)
+
+example1_dataframe <- data.frame(x = getlocmap()$coord$x, y = getlocmap()$coord$y, td = as.vector(unlist(example1[1, 11:64])))
+ggplot(example1_dataframe, aes(x = x, y = y)) +
+  geom_text(aes(label = td)) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  theme_void()
+
+```
+
+The standard already contains some additional information with a border presenting a color-coded visualisation of the deviation and a graphical representation of the blind spot.
+
+```{r}
+
+vfplot(example1, type = "td")
+
+vfplot(example1, type = "s")
+
+```
+
+Note that you have to specify what type of data is contained in the visual field tables. The default is set to *total deviation*.
+
+# Global parameters
+
+Global parameters summarize the visual field in a few parameters. These global parameters can be calculated with the visualField package.
+
+The mean sensitivity (MS) is the arithmetic mean of all sensitivity values, the mean deviation (MD) is the arithmetic mean of all total deviation values in the field. The pattern standard deviation (PSD) is the standard deviation of the total deviation values.
+
+```{r}
+
+getgl(example1)[, 11:18]
+
+```
+Again, the probability of the observed values given that the visual field is normal can be calculated.
+
+```{r}
+
+getglp(getgl(example1))
+
+```
+
+# Structure function correlations in glaucoma patients
+
+In glaucoma, the damage occurs at the levels of the nerve fiber bundles in the optic nerve. Therefore, visual field defect frequently follow this anatomy and correspond to structural changes in the retinal nerve fiber layer that can be imaged along a ring around the optic nerve. Locations in the visual field correspond to a location where the nerves that transmit signals from the photoreceptors that detect a signal via the retinal ganglion cells cross this ring.
+
+```{r}
+
+example1_dataframe
+
+loc2psi(locmaps$p24d2$coord[1, ])
+
+```
+
+# Longitudinal analyses
+
+Monitoring function over time in glaucoma patients is the most common clinical application of visual fields in ophthalmology. For the next example, we will select a series of 27 visual fields that were obtained over several years.
+
+```{r}
+
+example2 <- vffilter(vfpwgSunyiu24d2, 
+                     id == "sample1" & 
+                       eye == "OS")
+```
+
+
+```{r}
+
+vflegoplot(example2)
+vfsparklines(example2)
+
+```
+
+Statistical analysis can be performed with linear regression of global parameters, pointwise linear regression (one regression line for each location), which results in a number of p-values, or with Permutation analysis of Pointwise Linear Regression (PoPLR).
+
+```{r}
+
+glr(getgl(example2))
+
+```
+```{r}
+
+res <- plr(example2)
+
+vfplotplr(example2)
+
+```
+
+```{r}
+
+poplr(example2)
+
+```
+
+Progression reports can be created as pdfs or as interactive reports with shiny.
+
+```{r}
+
+vfspa(example2, file = "test.pdf")
+# vfspashiny(example2, file = "test.pdf")
+
+```
+
+# DICOM standard of visual fields
+
+DICOM (Digital Imaging and Communications in Medicine) standards for ophthalmic static perimetry are specified in Supplement 146. Currently, the data representation in the VisualFields package differs from these standards. However, there are two functions for loading data generated in the DICOMM format created by the Humphrey Field Analyzer (HFA) by Zeiss. Theoretically, this function should also load data from other perimeters.
+
+# Using a different perimeter
+
+The VisualField package provided normative data for the Humphrey Field Analyzer but currently not for other perimeters. The loadoctopus function also imports some normative data from the Octopus perimeter by Haag-Streit, but this does not allow full use of the functionality of the visualFields package, currently.
