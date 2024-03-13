@@ -25,39 +25,69 @@ The visualFields package facilitates statistical analysis and plotting of visual
 
 Visual field testing measures a patient's visual ability at different locations of the visual field. This ability is usually highest in the center of the visual field (i.e. the point that the observer looks at) and decreases toward the periphery (*hill of vision*). The most common type of visual field testing is *perimetry*, which is performed with in a dome-shaped cupule, so that the distance between the stimulus and the eye equal for all locations within the visual field. In contrast, *campimetry* is performed with a flat screen.
 
-Usually, perimetry tests the ability to perceive differences in luminance with an achromatic (not colored) stimulus (white-on-white perimetry). However, theoretically, other aspects of vision can be tested at different locations (ability to discriminate dots that are very close to each other, ability to discriminate similar colors, contrast sensitivity). The visual fields package was created to analyze data from *static perimetry*, where a threshold is measured for each of a fixed number of locations in a grid pattern. In contrast, in *kinetic perimetry*, a light spot moves from the periphery toward the center along a number of meridians and the location there the spot is first perceivable for the subject is noted.
-
-# Performing visual field tests
-
-For the typical visual field test, the subject or patient is comfortably seated in front of a perimeter and puts his head on a chin rest looking into a white Ganzfeld cupule (or hemisphere). The perimeter is located in a dimly lit, calm room and the subject has been explained what to do by an experienced technician before the examination. In his hand, the subject has a button in order to signal whether he saw a stimulus.
-
-He now looks at a fixation light right in front of him in the center of the cupule and presses the button as soon as he sees a light appearing anywhere in the cupule. These lights are presented only for a short time span (typically 100-200ms), so that the subject in not tempted to look at the stimulus. Therefore, a press of the button will be linked to a presentation when it occurs within a given time window after the presentation. A computer will present stimuli several times at different locations in a grid pattern. For each location, the stimulus intensity (luminance) will be adjusted depending on the subjects responses, but the presentations will be randomly interleaved between different locations.
-
-## Grid pattern
-
-The spatial position of the points $l_1$ to $l_n$ in the visual field is found in the locmap and depends on the pattern used by the perimeter. When analysing data, you need to specify the locmap.
-
-By default, the 24-2 pattern which uses locations that are equally spaced across the field is used.
-
-Beside a name and a description, a locmap dataset contains a coordinate table with the x- and y- coordinates of the locations measured in degrees, and the id of the points that cover the physiological blind spot (the id is the number x in $l_x$ and corresponds to the row in the coord table).
+Usually, perimetry tests the ability to perceive differences in luminance with an achromatic (not colored) stimulus (white-on-white perimetry). However, theoretically, other aspects of vision can be tested at different locations (ability to discriminate dots that are very close to each other, ability to discriminate similar colors, contrast sensitivity). 
 
 ```{r echo=FALSE}
 
 default_locmap <- getlocmap()
+
 plot(x = default_locmap$coord$x, 
      y = default_locmap$coord$y, 
      type = "point", 
      asp = 1,
-     xlim = c(-24, 24),
-     ylim = c(-24, 24))
+     xlim = c(-32, 26),
+     ylim = c(-29, 26),
+     yaxt = 'n',
+     xaxt = 'n',
+     bty = 'n',
+     xlab = "",
+     ylab = "")
+text(x = 0, y = -28, "horizontal eccentricity [degree]")
+text(x = -34, y = -0, "vertical eccentricity [degree]", srt = 90)
 points(x = default_locmap$coord[default_locmap$bs, "x"],
        y = default_locmap$coord[default_locmap$bs, "y"],
        col = "red")
+lines(x = c(-2.5, 2.5), y = c(0, 0))
+lines(x = c(0, 0), y = c(-2.5, 2.5))
 
 ```
 
-Locations of the locmap that cover the blind spot are reported in the locmaps lists under bs. If the blind spot is outside the pattern (for example in the 10° visual fields) or is spared by the grid as in the Octopus G1 pattern, the list item bs is set to numeric(0).
+The visual fields package was created to analyze data from *static perimetry*, where a threshold is measured for each of a fixed number of locations in a grid pattern. In contrast, in *kinetic perimetry*, a light spot moves from the periphery toward the center along a number of meridians and the location there the spot is first perceivable for the subject is noted.
 
+# Performing visual field tests
+
+For the typical visual field test, the subject or patient is comfortably seated in front of a perimeter and puts his head on a chin rest looking into a white Ganzfeld cupule (or hemisphere). The perimeter is located in a dimly lit, calm room and the subject has been explained what to do by an experienced technician before the examination. In his hand, the subject has a button.
+
+He now looks at a fixation light right in front of him in the center of the cupule and presses the button as soon as he sees a light appearing anywhere in the cupule. These lights are presented only for a short time span (typically 100-200ms), so that the subject has no time to shift his gaze to the stimulus. A press of the button will be linked to a presentation when it occurs within a given time window after the presentation. A computer will present stimuli several times at different locations in a grid pattern. For each location, the stimulus intensity (luminance) will be adjusted depending on the subjects responses, but the presentations will be randomly interleaved between different locations.
+
+## Grid pattern
+
+The spatial position of the points $l_1$ to $l_n$ in the visual field is found in the location map (locmap) and depends on the pattern used by the perimeter. When analyzing data, you need to specify the locmap.
+
+By default, the 24-2 pattern (shown above) is used, which consists of 54 locations that are equally spaced across the field.
+
+```{r}
+
+# install.packages("visualFields")
+library(visualFields)
+
+default_locmap <- getlocmap()
+
+str(default_locmap)
+
+```
+
+Beside a name and a description, a locmap dataset contains a coordinate table with the x- and y- coordinates of the locations measured in degrees, and the id of the points that cover the physiological blind spot (the id is the number x in $l_x$ and corresponds to the row in the coord table).
+
+Locations of the locmap that cover the blind spot are reported in the locmaps lists under the variable bs. If the blind spot is outside the pattern (for example in the 10° visual fields) or is spared by the grid as in the Octopus G1 pattern, the list item bs is set to numeric(0).
+
+```{r}
+
+ten_two_locmap <- locmaps$p10d2
+
+str(ten_two_locmap)
+
+```
 The grid, the stimulus size, presentation time and the algorithm responsible for varying intensities remain constant throughout the examination and are called a perimetry program. Not that examinations performed with different programs cannot be directly compared.
 
 # Clinical applications of visual field tests
@@ -74,57 +104,119 @@ The most advanced statistical methods have been created for monitoring glaucoma 
 
 ## Loading data
 
-The visualField package contains some example data. This dataset contains the results of 42 visual field tests of one patient (id: sample1). The patient has a chronic-neurodegenerative disease of the optic nerve called primary open-angle glaucoma (type: pwg).
+The visualField package contains some example data. This dataset contains the results of 42 visual field tests of one patient (id: sample1). The patient has primary open-angle glaucoma (type: pwg).
 
 ```{r}
-
-# install.packages("visualFields")
-library(visualFields)
 
 data(vfpwgSunyiu24d2)
 
-str(vfpwgSunyiu24d2[, 1:6])
+str(vfpwgSunyiu24d2[, 1:10])
 
 ```
+
+The first columns characterize the patient, the time and duration of the examination, the diagnosis, and the reliability parameters 'false positive responses', 'false negative responses' and 'fixation losses'.
+
+Each row corresponds to one visual field test. Visual field testing is performed monocularly (one eye at a time), so that two examinations exist for each date. The abbreviations for the laterality ('eye')is derived from latin (OD: right eye = oculus dexter, and OS: left eye = oculus sinister), when both eyes are examined, the abbreviation is OU.
+
+The environment variable locini contains the number of the first column that contains the actual visual field date. Each column $l_{n}$ corresponds to one location in the visual field test. A concise way to select the columns $l_1$ to $l_{n}$ is to use the *getvfcols* function.
 
 ```{r}
 
-head(vfpwgSunyiu24d2, 4)
+getlocini()
+getvfcols()
+
+vfpwgSunyiu24d2[1, getlocini():ncol(vfpwgSunyiu24d2)]
 
 ```
 
-Each row corresponds to one visual field test. Visual field testing was performed monocularly (one eye at a time), so that two examinations exist for each date.
+There mustn't be any columns after these columns. Use the *vffilter* function to select specific fields and teh *vfisvalid* function to check whether a table fulfills the criteria. The latter will also tell you what the problem is when it doesn't.
 
-The abbreviations for the laterality is derived from latin (OD: right eye = oculus dexter, and OS: left eye = oculus sinister), when both eyes are examined, the abbreviation is OU.
+```{r}
 
-For now, not that each column $l_{n}$ corresponds to one location in the visual field test.
+example1 <- vffilter(vfpwgSunyiu24d2, 
+                     id == "sample1" & 
+                       eye == "OD")[1, ]
+
+example1$newVariable <- "not valid"
+
+vfisvalid(example1)
+
+```
+
 
 ## Plotting the visual field
 
-The most straightforward plots show the sensitivity/total deviation/pattern deviation/probabilitites at the corresponding locations. These representations are very exact, but may be difficult to interpret.
+The most straightforward plots show the sensitivities at the corresponding locations. These representations are very exact, but may be difficult to interpret. For learning purposes, here, we manually plot some visual field data.
 
 ```{r}
 
 setdefaults()
 
-example1 <- vffilter(vfpwgSunyiu24d2, 
+example2 <- vffilter(vfpwgSunyiu24d2, 
                      id == "sample1" & 
-                       eye == "OD" & 
-                       date == min(vfpwgSunyiu24d2$date))
-vfisvalid(example1)
+                       eye == "OD")[1, ]
 
-example1_dataframe <- data.frame(x = getlocmap()$coord$x, y = getlocmap()$coord$y, td = as.vector(unlist(example1[1, 11:64])))
-ggplot(example1_dataframe, aes(x = x, y = y)) +
+vfisvalid(example2)
+
+example2_dataframe <- data.frame(x = getlocmap()$coord$x, 
+                                 y = getlocmap()$coord$y, 
+                                 td = as.vector(unlist(example2[, getvfcols()])))
+
+ggplot(example2_dataframe, aes(x = x, y = y)) +
   geom_text(aes(label = td)) +
   geom_hline(yintercept = 0) +
   geom_vline(xintercept = 0) +
   theme_void()
 
 ```
+Note that left eyes have to be treated differently if you plot the points manually, because the location labels are mirrored. 
+
+By convention, when both eyes are presented side by side, the left eye is shown on the left and the right eye on the right. This corresponds to the visual field of the observer, so that the physiological blindspots are directed temporally (toward the temple, away from the nose) for both eyes. This is in contrast to presentation of structural data, which is usually shown like it would look in a patient sitting in front of you, where his right eye is on the observers left side.
+
+```{r}
+
+OD_dataframe <- data.frame(x = getlocmap()$coord$x, 
+                             y = getlocmap()$coord$y, 
+                             loc_label = paste0("l", 1:54),
+                             is_blindspot = FALSE,
+                             eye = "OD")
+
+# Note the minus in the x variable for the left eye
+OS_dataframe <- data.frame(x = -getlocmap()$coord$x, 
+                             y = getlocmap()$coord$y, 
+                             loc_label = paste0("l", 1:54),
+                             is_blindspot = FALSE,
+                             eye = "OS")
+
+OD_dataframe[getlocmap()$bs, "is_blindspot"] <- TRUE
+OS_dataframe[getlocmap()$bs, "is_blindspot"] <- TRUE
+
+ODOS_dataframe <- rbind(OS_dataframe, OD_dataframe)
+
+# Use factor in order to show left eye on the left side
+ODOS_dataframe$eye <- factor(ODOS_dataframe$eye, 
+                             levels = c("OS", "OD"), 
+                             ordered = TRUE)
+
+
+ggplot(ODOS_dataframe, aes(x = x, y = y)) +
+  geom_label(aes(label = loc_label, color = is_blindspot)) +
+  scale_color_manual(values = c("black", "red")) +
+  facet_wrap(~ eye)
+
+
+```
+
+
+The visualField package provides functions for more sophisticated plotting, which will be explained later. *These functions automatically take care that right eyes and left eyes are plotted correctly.*
 
 # Psychophysical testing
 
-Psychophysical tests systematically measure the relationship between physical stimulus strength and the subjective perception. This is performed by varying the stimulus and asking the observer to communicate his perception with a limited number of allowed responses. In visual field testing, the observer usually presses a button when a light spot is perceived. The relationship between stimulus and perception is analyzed using mathematical model. Commonly, these models result in an estimate of a *threshold*, which denotes either the absolute stimulus strength that can just barely be perceived or the smallest difference that can be perceived as different. Real world scenarios where perception is close to threshold include going through a dark forest on a cloudy night or seeing the car in front through a dense fog. Stimuli are not clearly seen when close to threshold. For this reason, patients sometimes feel that lengthy visual field testing is tedious and that it is as an unreliable examination. The latter is not clearly correct when fluctuations are taken into account and data are analyzed with appropriate statistical methods.
+Psychophysical tests systematically measure the relationship between physical stimulus strength and the subjective perception. This is performed by varying the stimulus and asking the observer to communicate his perception with a limited number of allowed responses. In visual field testing, the observer usually presses a button when a light spot is perceived. 
+
+The relationship between stimulus and perception is analyzed using mathematical model. Commonly, these models result in an estimate of a *threshold*, which denotes either the absolute stimulus strength that can just barely be perceived or the smallest difference that can be perceived as different. 
+
+Real world scenarios where perception is close to threshold include going through a dark forest on a cloudy night or seeing the car in front through a dense fog. Stimuli are not clearly seen when close to threshold. For this reason, patients sometimes feel that lengthy visual field testing is tedious and that it is as an unreliable examination. The latter is not clearly correct when fluctuations are taken into account and data are analyzed with appropriate statistical methods.
 
 # Measurements
 
@@ -140,7 +232,9 @@ Therefore, advanced algorithms were developed for reducing the number of stimulu
 
 Residual deviation from the psychometric function may occur due to inattention of the observer but also due to short-term fluctuation of the threshold. For example, it has been shown that the threshold underlies short-term fluctuates in the areas where light sensitivity was negatively affected by glaucoma, a disease of the optic nerve.
 
-The cooperation of the subject is also tested in some perimeters by presenting deliberately presenting a stimulus at the location of the *physiological blind spot*. If the subjects sees that stimulus, it must be assumed that he did not fixate correctly (fixation loss) and that the reliability of the field is decreased.
+When the observer does not see a stimulus that is clearly above a level that has been seen before, this is called a false negative response (fnr). In contrast, when the subject presses the button although no stimulus is presented, this is a false positive response (fpr).
+
+The cooperation of the subject is also tested in some perimeters by presenting deliberately presenting a stimulus at the location of the blind spot. If the subjects sees that stimulus, it must be assumed that he did not fixate correctly (fixation loss) and that the reliability of the field is decreased.
 
 # Mathematical derivatives of threshold
 
@@ -160,29 +254,52 @@ The resulting difference is also measured in dB and is called either *deviation*
 
 In eye diseases like glaucoma, general defects that affect the whole visual field are often less relevant than focal scotomas. Therefore, deviation is sometimes corrected for the average sensitivity of the visual field. This is called *pattern deviation*.
 
-### Dataset
+### Sensitivity
 
-We use the dataset included in the package for demonstrating calculation of global parameters.
+In the visualField datasets, $l_1$ to $l_n$ represents sensitivities.
 
-```{r sensitivity}
+```{r}
 
-vfpwgSunyiu24d2[1:4, 1:12]
+example2[, getlocini()+1:4]
 
 ```
 
 ### Total deviation
 
+Total deviation is calculated from the sensitivities and from age-related normal values. These are saved in the environment variable *nv* (normal values).
+
 ```{r total deviation}
 
-gettd(vfpwgSunyiu24d2)[1:4, 1:12]
+age <- example2[1, "age"]
+
+print(age)
+
+normal_values <- getnv()$agem$model(age)[1:4]
+
+print(normal_values)
+
+total_defects <- example2[, getlocini()+1:4] - normal_values
+
+print(total_defects)
 
 ```
 
+These values can be automatically calculated with a dedicated function.
+
+```{r}
+
+gettd(example2)[, getlocini()+1:4]
+
+```
+
+
 ### Pattern deviation
+
+The pattern deviation corrects for the mean deviation, i.e. the average sensitivity loss. It highlights local defects but does not show global sensitivity loss, for example due to opacification of the optic media.
 
 ```{r pattern deviation}
 
-getpd(vfpwgSunyiu24d2)[1:4, 1:12]
+getpd(example2)[, getlocini()+1:4]
 
 ```
 
@@ -196,7 +313,7 @@ This is calculated based on measurements in the reference population that is als
 
 ```{r total deviation probabilities}
 
-gettdp(vfpwgSunyiu24d2)[1:4, 1:12]
+gettdp(example2)[, getlocini()+1:4]
 
 ```
 
@@ -212,11 +329,11 @@ getpdp(vfpwgSunyiu24d2)[1:4, 1:12]
 
 There are different ways to visualize perimetric results. These visualizations have to be interpreted like maps in that they represent a simplified version of the hill of vision.
 
-The standard already contains some additional information with a border presenting a color-coded visualization of the deviation and a graphical representation of the blind spot. Note that the vfplot with the option "td" needs information on differential light-sensitivities in a normal reference population and on the probability of given deviations from these normal values. These informations are included for the typical Humphrey Field Analyzer fields, but you need to collect this information if you use other parameters.
+The standard already contains some additional information with a border presenting a color-coded visualization of the deviation and a graphical representation of the blind spot. Note that the vfplot with the option "td" needs information on differential light-sensitivities in a normal reference population and on the probability of given deviations from these normal values. These data are included for the typical Humphrey Field Analyzer fields, but you need to collect this information if you use other perimeters
 
 ```{r}
 
-vfplot(example1, type = "s")
+vfplot(example2, type = "s")
 
 ```
 
@@ -224,59 +341,105 @@ Note that you have to specify what type of data is contained in the visual field
 
 ```{r}
 
-vfplot(example1, type = "td")
+vfplot(example2, type = "td")
 
 ```
 
 ```{r}
 
-vfplot(example1, type = "tds")
+vfplot(example2, type = "tds")
 
 ```
 
 ```{r}
 
-vfplot(example1, type = "pd")
+vfplot(example2, type = "pd")
 
 ```
 
 ```{r}
 
-vfplot(example1, type = "pds")
+vfplot(example2, type = "pds")
 
 ```
 
 # Global parameters
 
-Global parameters summarize the visual field in a few parameters. These global parameters can be calculated with the visualField package.
+Global parameters summarize the visual field in a few parameters. These global parameters also can be calculated with the visualField package. The resulting table contains the visual field header data (patient id, eye, etc.), but contains 8 columns (msens, ssens, tmd, tsd, pmd, psd, gh, and vfi) instead.
 
-The mean sensitivity (MS) is the arithmetic mean of all sensitivity values, the mean deviation (MD) is the arithmetic mean of all total deviation values in the field. The pattern standard deviation (PSD) is the standard deviation of the total deviation values.
+The mean sensitivity (MS, msens) is the arithmetic mean of all sensitivity values, the mean deviation (MD, tmd) is the arithmetic mean of all total deviation values in the field. The pattern standard deviation (PSD) is the standard deviation of the total deviation values.
 
 ```{r}
 
-getgl(example1)[, 11:18]
+getgl(example2)[, -(1:getlocini()-1)]
 
 ```
-
 Again, the probability of the observed values given that the visual field is normal can be calculated.
 
 ```{r}
 
-getglp(getgl(example1))
+getglp(getgl(example2))[, -(1:getlocini()-1)]
 
 ```
 
 # Structure function correlations in glaucoma patients
 
-In glaucoma, the damage occurs at the levels of the nerve fiber bundles in the optic nerve. Therefore, visual field defect frequently follow this anatomy and correspond to structural changes in the retinal nerve fiber layer that can be imaged along a ring around the optic nerve. Locations in the visual field correspond to a location where the nerves that transmit signals from the photoreceptors that detect a signal via the retinal ganglion cells cross this ring.
+In the last years, techniques detailed imaging of the retina and the optic nerve have made incredible advances. Therefore, correlation between structure and function is becoming even more important than ever.
+
+When photoreceptors are lost in an specific retinal area, the scotoma always occurs in the directions in space that is perceived by that retinal area. This makes structure-function correlations easy.
+
+In glaucoma, the damage occurs in the optic nerve at the levels of the nerve fiber bundles, which consist of the axons of the retinal ganglion cells. In the retina, these cells form two layers: the ganglion cell layer that contains the cell bodies, and the retinal nerve fiber layer. However, the cell bodies of the retinal ganglion cells are displaced from the area where the photoreceptors are located that they receive input from. This displacement is relevant mostly in the center of the visual field.
+
+Therefore, the visualFields package provides function to calculate where the ganglion cells that subserve a given location in the visual field are located and to calculate at which angle the axons of these ganglion cells enter the optic nerve head (optic disc), where they pass through the sclera (wall of the eye) to form the optic nerve.
 
 ```{r}
 
-example1_dataframe
+locmaps$p24d2$coord[23, ]
 
-loc2psi(locmaps$p24d2$coord[1, ])
+loc2psi(locmaps$p24d2$coord[23, ])
+
+vf2gc(locmaps$p24d2$coord[23, ])
 
 ```
+
+From the angle of incidence, the nerve fiber bundle path can be calculated. Note that the function for calculating the trajectory will extrapolate the trajectory beyond the location of the visual field (usually to the raphe).
+
+```{r}
+
+# use loc2psi to calculate the incidence of the nerve fiber corresponding to a given location at the ONH
+angle_of_incidence_l19 <-loc2psi(locmaps$p24d2$coord[19, ])
+
+# use cart2jpolar for calculating the position of the visual field location in the polar coordinate system
+locations <- rbind(cart2jpolar(locmaps$p24d2$coord[19, ]),
+                   cart2jpolar(locmaps$p24d2$coord[23, ]),
+                   cart2jpolar(locmaps$p24d2$coord[47, ]),
+                   cart2jpolar(data.frame(x = 0, y = 0)))
+locations$labels <- c("l19", "l23", "l47", "fixation")
+
+# use bundePath to create a function for calculating the bundle path
+path_function_l19 <- bundlePath(angle_of_incidence_l19)
+path_function_l23 <- bundlePath(loc2psi(locmaps$p24d2$coord[23, ]))
+path_function_l47 <- bundlePath(loc2psi(locmaps$p24d2$coord[47, ]))
+
+bundle_path <- data.frame(y = 0:90,
+                          x_l19 = path_function_l19(0:90),
+                          x_l23 = path_function_l23(0:90),
+                          x_l47 = path_function_l47(0:90))
+
+ggplot(bundle_path, aes(y = y)) +
+  geom_line(aes(x = x_l19)) +
+  geom_point(data = locations, aes(x = -psi, y = r, color = labels, shape = labels == "fixation")) +
+  geom_line(aes(x = x_l23), color = "red") +
+  geom_line(aes(x = x_l47), color = "blue") +
+  coord_polar(start = pi / 2, direction = -1) +
+  scale_x_continuous(breaks = c(-180, -90, 0, 90, 180), limits = c(-180, 180)) +
+  scale_y_continuous(limits = c(0, 60)) +
+  scale_color_manual(values = c("l19" = "black", "l23" = "red", "l47" = "blue", "fixation" = "black")) +
+  guides(color = FALSE, shape = FALSE)
+
+```
+
+In this plot, the origin corresponds to the center of the ONH, the black triangle corresponds to the fovea, and the 180degree angle corrsponds to the line between the ONH center and the fovea, which is, in reality, slightly tilted downward in most patients.
 
 # Longitudinal analyses
 
@@ -290,13 +453,11 @@ Event-based methods are not implemented in the visualFields pacakge. Briefly, th
 
 Trend-based methods assume that progression takes place more slowly, so that several field tests are carried out during this time span. This concept is unsettling for the clinician who wants to stop progression the first time that he sees the patient, but regularly takes place even in the case of optimal treatment. The advantage is that all measurements are taken into account, not only the baseline test and the most recent tests.
 
-## Dataset
-
 For the next example, we will select a series of 27 visual fields that were obtained over several years.
 
 ```{r}
 
-example2 <- vffilter(vfpwgSunyiu24d2, 
+example3 <- vffilter(vfpwgSunyiu24d2, 
                      id == "sample1" & 
                        eye == "OS")
 ```
@@ -307,7 +468,7 @@ The sparkline plot only shows the raw data.
 
 ```{r}
 
-vfsparklines(example2)
+vfsparklines(example3)
 
 ```
 
@@ -315,7 +476,7 @@ The lego plot shows probabilities for progression which relies on population bas
 
 ```{r}
 
-vflegoplot(example2)
+vflegoplot(example3)
 
 ```
 
@@ -323,24 +484,34 @@ vflegoplot(example2)
 
 Statistical analysis can be performed with linear regression of global parameters, pointwise linear regression (one regression line for each location), which results in a number of p-values, or with Permutation analysis of Pointwise Linear Regression (PoPLR).
 
-The *glr* function performs linear regression on global parameters.
+The *glr* function performs linear regression on global parameters. In the following example, the patient loses 0.24dB each year and this change is statistically significant.
 
 ```{r}
 
-glr(getgl(example2))
+md_regression <- data.frame(time = glr(getgl(example3), type = "md")$years,
+           md = glr(getgl(example3), type = "md")$data)
+
+slope <- glr(getgl(example3), type = "md")$sl
+intercept <- glr(getgl(example3), type = "md")$int
+
+ggplot(md_regression, aes(x = time, y =md)) +
+  geom_point() +
+  geom_abline(slope = slope, intercept = intercept)
+
+glr(getgl(example3), type = "md")$pval
 
 ```
 
-The *plr* function performs pointwise linear regression.
+The *plr* function performs pointwise linear regression (i.e. linear regression for each location in the field separately). Specific parameters have to be chosen, in order to detect disease progression. For example, progression might be defined as at least 3 locations having a slope less than 0dB/year and a p-value less than 0.05.
 
 ```{r}
 
-prog1 <- plr(example2)
+prog1 <- plr(example3)
 str(prog1, max.level = 1)
 
 print(sum(prog1$pval < 0.05))
 
-vfplotplr(example2)
+vfplotplr(example3)
 
 ```
 
@@ -350,7 +521,7 @@ The *poplr* function yields a large list with many intermediate computations. Th
 
 ```{r}
 
-prog2 <- poplr(example2)
+prog2 <- poplr(example3)
 str(prog2, max.level = 1)
 
 ```
@@ -364,12 +535,16 @@ prog2$csrp
 
 ```
 
-In contrast, a deterioration is very likely (p < 0.0001).
+In contrast, a deterioration is very likely (p < 0.0001). In the histogram, you can see that a S-score of 176 was only very rarely found in the random permutations of the visual field series.
 
 ```{r}
 
 prog2$csl
 prog2$cslp
+
+hist(prog2$cstats$cslall)
+abline(v = prog2$csl)
+
 
 ```
 
@@ -379,9 +554,9 @@ Progression reports can be created as pdfs or as interactive reports with shiny.
 
 ```{r eval=FALSE, include=TRUE}
 
-vfspa(example2, file = "test.pdf")
+# vfspa(example3, file = "test.pdf")
 
-vfspashiny(example2, file = "test.pdf")
+# vfspashiny(example3, file = "test.pdf")
 
 ```
 
@@ -393,32 +568,18 @@ Currently, the data representation in the VisualFields package differs from thes
 
 # Using a different perimeter
 
-Different manufacturers have different conventions in perimetry.
-
-Humphrey Field Analyzer (Carl-Zeiss-Meditec)
+Different manufacturers have different conventions in perimetry. For example, clinicians working with Humphrey Field Analyzers (Carl-Zeiss-Meditec) are often used to report loss of function as negativ values (MD: mean *deviation* of -10dB), while those working with Octopus perimeters (Haag-Streit) often report loss as a positive value (MD: mean *defect* of 10dB). Furthermore, clinicians working with Octopus perimeters often use different grids, even though the 24-2 and 10-2 grids are theoretically available. Usually, fields cannot be directly compared because other setting ($L_max$) are also different and because different algorithms are used.
 
 The VisualField package provided normative data for the Humphrey Field Analyzer but currently not for other perimeters.
 
-Octopus 900 Perimeter (Haag-Streit)
 
-The loadoctopus function also imports some normative data from the Octopus perimeter by Haag-Streit, but this does not allow full use of the functionality of the visualFields package, currently.
+The loadoctopus function also imports some normative data from the Octopus perimeter by Haag-Streit, but, as of now, this does not allow full use of the functionality of the visualFields package
 
 For making full use of the visusalField package with other parameters, you ideally need a database of visual fields from a normal reference population, but the creation of normal values with the visualFields package goes beyond the scope of this vignette.
 
-
-
-
-```{r}
-
-
-
-```
-
-
-
 # Advanced topics
 
-# Setting up the environment
+## Setting up the environment
 
 A given visual field program has certain properties that remain unchanged during the test. In the visualFields packages these are saved in the *environment*. After setting this environment, you can only analyse data that is consistent with this environment.
 
@@ -429,15 +590,20 @@ The environment contains information on
 -   Graphical parameters used for plotting the data (gpar)
 -   Where to find visual field measurements in the tables (locini)
 
+The nv environment variable also contains functions for calculating defects, probabilities and global parameters that can be accessed via the functions stated above.
+
 ```{r see current environment variables}
 
-getnv()$info
+getnv()$info        # current normal values
+str(getnv(), 1)
+
+str(getlocmap(), 1)   # current locmap
+str(getgpar(), 1)     # current parameters for plotting
+getlocini()   # position of the column l1 in the datafram
 
 ```
 
 The standard environment assumes a static white-on-white perimetry with a Humphrey perimeter, using a 24-2 grid, a SITA standard algorithm, a stimulus size of Goldman Size III. The stimulus duration and the $L_{max}$ are not explicitly stated in the info.
-
-## Locini and Number of locations / vfisvalid
 
 ## Locmaps
 
@@ -476,20 +642,24 @@ points(x = default_locmap$coord[default_locmap$bs, "x"],
 
 ```
 
+Note that for switching to another perimetry program, you need to set all environment variables.
+
+```{r}
+
+setnv(normvals$iowa_PC26_pw)
+
+setlocmap(locmaps$pPC26)
+
+setgpar(gpars$pPC26)
+
+```
+
 ## Resetting the enviroment
+
+If you reset the environment, you return to the 24-2 pattern measured with the SITA algorithm on a Humphrey Field Analyser.
 
 ```{r}
 
 setdefaults()
-
-```
-
-## Using environment variables
-
-Note that the visualFields package will always override the local environment from which the call was made.
-
-```{r}
-
-# new_env <- new.env(parent = get)
 
 ```
