@@ -89,3 +89,4 @@ rsconnect/
 .DS_Store
 Thumbs.db
 
+*.png
