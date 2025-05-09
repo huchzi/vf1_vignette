@@ -20,19 +20,19 @@ The OPI [@IMF:Tur2012] [@IMF:Marin2022a] is a standard for interfacing with visu
 The visualFields package, part of the OPI, is a collection of tools for analyzing the field of vision. It provides a framework for the development and use of innovative methods for visualization, statistical analysis, and clinical interpretation of visual-field loss and its change over time.
 
 To install the released version of the package, run 
-```{r eval=FALSE}
+```{r install from CRAN, eval=FALSE}
 install.packages("visualFields")
 ```
 
 To install the newest version of the package, run:
-```{r eval=FALSE}
+```{r install from github, eval=FALSE}
 install.packages("devtools")
 library(devtools)
 install_github("imarinfr/vf1/source")
 ```
 
 To load the package run
-```{r}
+```{r load package}
 library(visualFields)
 ```
 
