@@ -51,3 +51,41 @@ rsconnect/
 .DS_Store
 
 *.html
+
+# LaTeX build files
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.bbl
+*.blg
+*.nav
+*.snm
+*.vrb
+*.xdv
+*.thm
+
+# Sweave/knitr intermediate files
+*.tex
+*.pdf
+*.RData
+*.Rout
+*.Rout.save
+*.Rhistory
+*.Rproj.user/
+*.Rnw.tex
+*.tikz
+
+# RStudio files
+.Rproj.user/
+*.Rproj
+
+# System files
+.DS_Store
+Thumbs.db
+

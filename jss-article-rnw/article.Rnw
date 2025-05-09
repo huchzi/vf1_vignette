@@ -44,8 +44,8 @@ library("MASS")
 
 \Address{
   Cord Huchzermeyer\\
-  INSTITUTION\\
-  E-mail: \email{cord@example.com}\\
+  Department of Ophthalmology, University Hospital Erlangen \\
+  E-mail: \email{c.huchzermeyer@posteo.de}\\
   \\
   Iván Marín-Franch\\
   Computational Optometry\\
@@ -54,6 +54,7 @@ library("MASS")
 }
 
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 
 
 %% -- Introduction -------------------------------------------------------------
@@ -67,21 +68,27 @@ The \pkg{visualFields} package, part of the OPI, is a collection of tools for an
 \subsection{Installation}
 
 To install the released version of the package, run:
+\begin{CodeChunk}
 \begin{CodeInput}
 install.packages("visualFields")
 \end{CodeInput}
+\end{CodeChunk}
 
 To install the newest version of the package, run:
+\begin{CodeChunk}
 \begin{CodeInput}
 install.packages("devtools")
 library(devtools)
 install_github("imarinfr/vf1/source")
 \end{CodeInput}
+\end{CodeChunk}
 
 To load the package, use:
+\begin{CodeChunk}
 \begin{CodeInput}
 library(visualFields)
 \end{CodeInput}
+\end{CodeChunk}
 
 \subsection{What is the visual field?}
 
