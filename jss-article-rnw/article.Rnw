@@ -15,6 +15,7 @@
 %% For Sweave-based articles about R packages:
 %% need no \usepackage{Sweave}
 \SweaveOpts{engine=R, eps=FALSE, keep.source = TRUE}
+
 <<preliminaries, echo=FALSE, results=hide>>=
 options(prompt = "R> ", continue = "+  ", width = 70, useFancyQuotes = FALSE)
 library("MASS")
@@ -27,9 +28,9 @@ library("MASS")
    \And Iván Marín-Franch\\Computational Optometry}
 \Plainauthor{Cord Huchzermeyer, Iván Marín-Franch}
 
-\title{visualFields 1.x: Tools for Analyzing the Field of Vision in \proglang{R}}
-\Plaintitle{visualFields 1.x: Tools for Analyzing the Field of Vision in R}
-\Shorttitle{visualFields 1.x in \proglang{R}}
+\title{visualFields 1.0.7: Tools for Analyzing the Field of Vision in \proglang{R}}
+\Plaintitle{visualFields 1.0.7: Tools for Analyzing the Field of Vision in R}
+\Shorttitle{visualFields 1.0.7 in \proglang{R}}
 
 \Abstract{
   The \pkg{visualFields} package is part of the Open Perimetry Initiative (OPI), 
@@ -54,7 +55,7 @@ library("MASS")
 }
 
 \begin{document}
-\SweaveOpts{concordance=TRUE}
+%%\SweaveOpts{concordance=TRUE}
 
 
 %% -- Introduction -------------------------------------------------------------
@@ -64,36 +65,6 @@ library("MASS")
 The Open Perimetry Initiative (OPI) \citep{IMF:Tur2012, IMF:Marin2022a} is a standard for interfacing with visual field testing machines (perimeters). It specifies basic functions that allow many visual field tests to be constructed. As of October 2017, it is fully implemented on the Octopus 900 and partially on the Heidelberg Edge Perimeter, the Kowa AP 7000, the CrewT IMO, and the Centervue Compass.
 
 The \pkg{visualFields} package, part of the OPI, is a collection of tools for analyzing the field of vision. It provides a framework for the development and use of innovative methods for visualization, statistical analysis, and clinical interpretation of visual-field loss and its change over time.
-
-\subsection{Installation}
-
-To install the released version of the package, run:
-\begin{CodeChunk}
-\begin{CodeInput}
-install.packages("visualFields")
-\end{CodeInput}
-\end{CodeChunk}
-
-To install the newest version of the package, run:
-\begin{CodeChunk}
-\begin{CodeInput}
-install.packages("devtools")
-library(devtools)
-install_github("imarinfr/vf1/source")
-\end{CodeInput}
-\end{CodeChunk}
-
-To load the package, use:
-<<>>=
-library(visualFields)
-@
-
-<<echo=FALSE>>=
-
-library(ggplot2)
-library(plotrix)
-
-@
 
 \subsection{What is the visual field?}
 
@@ -112,6 +83,9 @@ Visual field testing measures a patient's visual sensitivity at different locati
 Usually, perimetry tests the ability to detect increments in stimulus luminance with respect to the background with an achromatic (not colored) stimulus. This is a form of perimetry known as \textbf{white-on-white perimetry}. However, theoretically, other aspects of vision can be tested at different locations (ability to discriminate dots that are very close to each other, ability to discriminate similar colors, contrast sensitivity). The figure below shows the most common grid of locations tested during {SAP}. The gray ellipse corresponds to the blind spot of the hill of vision and, therefore, the red dots are expected to have no sensitivity.
 
 <<echo=FALSE, fig=TRUE>>=
+
+library(visualFields)
+library(plotrix)
 
 default_locmap <- getlocmap()
 
@@ -228,7 +202,36 @@ Visual field tests can be used to diagnose disease, to appraise the functional c
 [THIS SEEMS TO BE A BIT OUF OF PLACE, BUT I PREFER NOT TO EDIT THIS PART MYSELF]
 The most advanced statistical methods have been created for monitoring glaucoma progression. The open-angle glaucomas are a group of slowly progressing, chronic neurodegenerative diseases of the optic nerve, often caused by increased eye pressure. Patients need consequent monitoring over many years and slight changes in the visual field must be detected reliably. Therefore, many of the functions of the visualField package focus on glaucoma research.
 
-\subsection{Getting started with the package}
+%% -- Methods ------------------------------------------------------------------
+
+\section{Methods} \label{sec:methods}
+
+\subsection{Installation}
+
+The package is available on CRAN under the Apache 2.0 license and can be installed with the following command:
+
+<<eval=FALSE>>=
+
+install.packages("visualFields")
+
+@
+
+To install the newest version of the package, run:
+
+<<eval=FALSE>>=
+
+library(devtools)
+install_github("imarinfr/vf1/source")
+
+@
+
+<<echo=FALSE>>=
+
+library(ggplot2)
+library(plotrix)
+
+@
+
 \subsection{Loading data}
 The visualField package contains some example data. This dataset contains the results of 42 visual field tests of one patient (id: sample1). The patient has primary open-angle glaucoma (type: pwg).
 
@@ -267,77 +270,9 @@ vfisvalid(example1)
 
 @
 
-\subsection{Plotting the visual field}
-The most straightforward plots show the sensitivities at the corresponding locations. These representations are very exact, but may be difficult to interpret. For learning purposes, here, we manually plot some visual field data.
-
-<<fig=TRUE>>=
-
-setdefaults()
-
-example2 <- vffilter(vfpwgRetest24d2, 
-                     id == "1" & 
-                       eye == "OD")[1,]
-
-vfisvalid(example2)
-
-example2_dataframe <- data.frame(x = getlocmap()$coord$x, 
-                                 y = getlocmap()$coord$y, 
-                                 td = as.vector(unlist(example2[,getvfcols()])))
-
-ggplot(example2_dataframe, aes(x = x, y = y)) +
-  geom_text(aes(label = td)) +
-  geom_hline(yintercept = 0) +
-  geom_vline(xintercept = 0) +
-  coord_fixed() +
-  theme_void()
-
-@
-
-Note that left eyes have to be treated differently if you plot the points manually, because the location labels are mirrored along the y axis. In other words, to plot the data manually, for a left eye x should be `-getlocmap()$coord$x`.
-
-By convention, when both eyes are presented side by side, the left eye is shown on the left and the right eye on the right. This corresponds to the visual field of the observer, so that the physiological blindspots are directed temporally (toward the temple, away from the nose) for both eyes. This is in contrast to presentation of structural data, which is usually shown like it would look in a patient sitting in front of you, where his right eye is on the observers left side.
-
-<<fig=TRUE>>=
-
-OD_dataframe <- data.frame(x = getlocmap()$coord$x, 
-                             y = getlocmap()$coord$y, 
-                             loc_label = paste0("l", 1:54),
-                             is_blindspot = FALSE,
-                             eye = "OD")
-
-# Note the minus in the x variable for the left eye
-OS_dataframe <- data.frame(x = -getlocmap()$coord$x, 
-                             y = getlocmap()$coord$y, 
-                             loc_label = paste0("l", 1:54),
-                             is_blindspot = FALSE,
-                             eye = "OS")
-
-OD_dataframe[getlocmap()$bs, "is_blindspot"] <- TRUE
-OS_dataframe[getlocmap()$bs, "is_blindspot"] <- TRUE
-
-ODOS_dataframe <- rbind(OS_dataframe, OD_dataframe)
-
-# Use factor in order to show left eye on the left side
-ODOS_dataframe$eye <- factor(ODOS_dataframe$eye, 
-                             levels = c("OS", "OD"), 
-                             ordered = TRUE)
-
-ggplot(ODOS_dataframe, aes(x = x, y = y)) +
-  coord_fixed() +
-  xlim(-30, 30) +
-  ylim(-24, 24) +
-  geom_label(aes(label = loc_label, color = is_blindspot), size = 2.75) +
-  scale_color_manual(values = c("black", "red")) +
-  facet_wrap(~ eye)
-
-@
-
-
-The visualField package provides functions for more sophisticated plotting, which will be explained later. \textbf{These functions automatically take care that right eyes and left eyes are plotted correctly.}
-
 \subsection{Mathematical derivatives of contrast thresholds for statisitcal analysis}
 
-\subsection{Identifying defective locations on the visual field}
+\subsubsection{Identifying defective locations on the visual field}
 
 As mentioned earlier, the sensitivity in dB at each location is calculated from the contrast threshold relative to the maximal contrast.
 
@@ -351,7 +286,7 @@ The resulting \textbf{deviations} from age-corrected mean normal visual field ar
 
 In eye diseases like glaucoma, general defects that affect the whole visual field are often less relevant than focal scotomas. And often ocular opacities caused by cataract can mask such focal defects. For this reason, a statistical post-hoc correction to \textbf{total deviation} values is further applied to obtain \textbf{pattern deviation} values. The correction factor is often called the \textbf{general height} and for the 24-2 Humphrey is obtained by selecting the 7th greatest total deviation value. The \textbf{pattern deviation} values equal the \textbf{total deviation} values minus the \textbf{general height}.
 
-\subsection{Normative dataset and normative references}
+\subsubsection{Normative dataset and normative references}
 The visualFields package contains three datasets of healthy subjects that can be used to obtain normative age linear models and references.
 
 The SUNY-IU dataset [@IMF:Mar2013b] for the 24-2 SITA Standard and the Goldmann Size III:
@@ -376,7 +311,7 @@ For future use, we set `nv` as the normative values to be used in visualFields f
 setnv(nv)
 @
 
-\subsubsection{Age linear models and mean normal visual fields}
+\subsubsubsection{Age linear models and mean normal visual fields}
 The normative values and references stored in `nv` contains the coefficients of the age linear models:
 
 <<agelm>>=
@@ -391,10 +326,14 @@ print(nv$agem$model(age))
 
 Notice that the locations corresponding to the anatomical region of the blind spot all have `NA` as values, as they are excluded from the statistical analysis.
 
-\subsection{Total deviation}
+\subsubsection{Total deviation}
 Total deviation is calculated from the sensitivities and from age-related normal values. These are saved in the environment variable \textbf{nv} (normal values).
 
 <<sensitivities>>=
+
+example2 <- vffilter(vfpwgRetest24d2, 
+                     id == "1" & 
+                       eye == "OD")[1,]
 
 print(example2[, getvfcols()[1:10]])
 
@@ -425,7 +364,7 @@ print(td[, getvfcols()[1:10]])
 
 @
 
-\subsection{Pattern deviation}
+\subsubsection{Pattern deviation}
 Pattern deviation can be calculated after obtaining the general height.
 <<gh>>=
 gh <- getgh(td)
@@ -443,7 +382,7 @@ print(pd[, getvfcols()[1:10]])
 
 @
 
-\subsection{Total and Pattern deviation probabilities}
+\subsubsection{Total and Pattern deviation probabilities}
 As mentioned psychophysical sensitivity values vary considerably from test to test and between subjects Therefore, even in perfectly average eyes deviations will be different from zero most of the time. Given a visual field from a patient, the clinician has to know if a given deviation is likely to be caused by disease as opposed to normal retest and inter-individual variability.
 
 The function `nvgenerate` computes for the normative dataset, the total deviation and pattern deviation values for healthy eyes and records pointwise empirical probability distribution functions [@IMF:Hei1987b] that can be used to compute the probability that a specific total deviation (or pattern deviation value) value is from a healthy location [@IMF:Hei1987a] [@IMF:Heijl1991]. Thus, a low probability implies a greater likelihood of the location being damaged. Typically (and in our example), the probabilities are categorized as
@@ -458,55 +397,6 @@ The probability values for the previous values are as follows.
 <<probability maps>>=
 print(gettdp(td)[, getvfcols()[1:10]])
 print(getpdp(pd)[, getvfcols()[1:10]])
-@
-
-\subsection{Plotting the visual field}
-There are different ways to visualize the perimetric results. These visualizations have to be interpreted like maps in that they represent a simplified version of the hill of vision.
-
-[WE PROBABLY NEED SOME INTRO TO VFPLOT BEFORE TALKING MAKING NOTES, ETC?]
-The standard already contains some additional information with a border presenting a color-coded visualization of the deviation and a graphical representation of the blind spot. Note that the vfplot with the option "td" needs information on differential light-sensitivities in a normal reference population and on the probability of given deviations from these normal values. These data are included for the typical Humphrey Field Analyzer fields, but you need to collect this information if you use other perimeters
-
-Note that you have to specify what type of data is contained in the visual field tables. The default is set to \textbf{total deviation}, `td`.
-
-<<fig=TRUE>>=
-
-vfplot(example2)
-
-@
-
-In this graph, yellow represents probabilities < 0.05, orange probabilities < 0.02, red < 0.01, and dark red < 0.005.
-
-It is possible to print sensitivities (with darker representing locations with lower sensitivities)
-
-
-<<fig=TRUE>>=
-
-vfplot(example2, type = "s")
-
-@
-
-Pattern deviation values
-
-<<fig=TRUE>>=
-
-vfplot(example2, type = "pd")
-
-@
-
-And an hybrid plot showing total deviation values and probabilities along with a grayscale representing the sensitivities.
-
-<<fig=TRUE>>=
-
-vfplot(example2, type = "tds")
-
-@
-
-And a similar hybrid plot, but with pattern deviation values and probabilities.
-
-<<fig=TRUE>>=
-
-vfplot(example2, type = "pds")
-
 @
 
 \subsection{Global indices}
@@ -534,147 +424,29 @@ print(getglp(getgl(example2))[, -(1:getlocini()-1)])
 
 @
 
-\subsection{Putting everything together}
-Single field analysis reports can be created as pdfs or as interactive reports with Shiny. To explore them, type in the R Console the following:
+%% -- Results ------------------------------------------------------------------
 
-<<eval = FALSE>>=
-vfsfa(example2, file = "test.pdf")
-vfsfashiny(example2)
-@
+\section{Results} \label{sec:results}
 
-\subsection{Structure function correlations in glaucoma patients}
-In the last years, techniques that provide detailed imaging of the retina and the optic nerve have made incredible advances. Therefore, correlation between structure and function is becoming more important than ever.
+\subsection{Plotting the visual field}
+There are different ways to visualize the perimetric results. These visualizations have to be interpreted like maps in that they represent a simplified version of the hill of vision.
 
-To aid comparisons between structural insult and functional defect, it is useful to understand and model the anatomy of a typical healthy eye, even if such modeling through is imperfect given the large inter-individual differences in anatomical features [@IMF:Jan2009] [@IMF:Jan2012] [@IMF:Drasdo2007] [@IMF:Montesano2020]
+The standard already contains some additional information with a border presenting a color-coded visualization of the deviation and a graphical representation of the blind spot. Note that the vfplot with the option "td" needs information on differential light-sensitivities in a normal reference population and on the probability of given deviations from these normal values. These data are included for the typical Humphrey Field Analyzer fields, but you need to collect this information if you use other perimeters.
 
-In glaucoma, the damage occurs in the optic nerve at the levels of the nerve fiber bundles, which consist of the axons of the retinal ganglion cells. In the retina, these cells form two layers: the ganglion cell layer that contains the cell bodies, and the retinal nerve fiber layer. However, the cell bodies of the retinal ganglion cells are displaced from the area where the photoreceptors are located that they receive input from. This displacement is relevant mostly in the center of the visual field, so it would greatly affect the structure-function comparisons on grids such as the 10-2. The following figure shows the visual field locations and the corresponding ganglion cell soma being stimulated.
+By convention, when both eyes are presented side by side, the left eye is shown on the left and the right eye on the right. This corresponds to the visual field of the observer, so that the physiological blindspots are directed temporally (toward the temple, away from the nose) for both eyes. This is in contrast to presentation of structural data, which is usually shown like it would look in a patient sitting in front of you, where his right eye is on the observers left side.
 
-<<echo=FALSE, fig=TRUE>>=
+Note that you have to specify what type of data is contained in the visual field tables. The default is set to \textbf{total deviation}, `td`.
 
-locmap <- locmaps$p10d2
-gcmap <- vf2gc(locmap$coord)
-par(mfrow = c(1, 2))
-plot(x = locmap$coord$x, 
-     y = locmap$coord$y, 
-     type = "n", 
-     asp = 1,
-     xlim = c(-10, 12),
-     ylim = c(-10, 10),
-     yaxt = 'n',
-     xaxt = 'n',
-     bty = 'n',
-     xlab = "",
-     ylab = "",
-     main = "10-2 grid of test locations")
-lines(-c(10, 0.5), c(0, 0), lwd = 2, col = "lightgray")
-lines(c(0.5, 10), c(0, 0), lwd = 2, col = "lightgray")
-lines(c(0, 0), -c(10, 0.5), lwd = 2, col = "lightgray")
-lines(c(0, 0), c(0.5, 10), lwd = 2, col = "lightgray")
-lines(x = c(-0.5, 0.5), y = c(0, 0), lwd = 1.5)
-lines(x = c(0, 0), y = c(-0.5, 0.5), lwd = 1.5)
-for(r in c(2.5, 5, 7.5, 10))
-  draw.circle(0, 0, r, lwd = 2, col = NA, border = "lightgray")
-text(x = 11, y = 0, "10\u00b0", adj = c(0, 0.5))
-text(x = 0, y = 11, "10\u00b0", adj = c(0.5, 0))
-points(x = locmap$coord$x, y = locmap$coord$y, bg = "white")
-plot(x = locmap$coord$x, 
-     y = locmap$coord$y, 
-     type = "n", 
-     asp = 1,
-     xlim = c(-10, 12),
-     ylim = c(-10, 10),
-     yaxt = 'n',
-     xaxt = 'n',
-     bty = 'n',
-     xlab = "",
-     ylab = "",
-     main = "Corresponding ganglion cells")
-lines(-c(10, 0.5), c(0, 0), lwd = 2, col = "lightgray")
-lines(c(0.5, 10), c(0, 0), lwd = 2, col = "lightgray")
-lines(c(0, 0), -c(10, 0.5), lwd = 2, col = "lightgray")
-lines(c(0, 0), c(0.5, 10), lwd = 2, col = "lightgray")
-lines(x = c(-0.5, 0.5), y = c(0, 0), lwd = 1.5)
-lines(x = c(0, 0), y = c(-0.5, 0.5), lwd = 1.5)
-for(r in c(2.5, 5, 7.5, 10))
-  draw.circle(0, 0, r, lwd = 2, col = NA, border = "lightgray")
-text(x = 11, y = 0, "10\u00b0", adj = c(0, 0.5))
-text(x = 0, y = 11, "10\u00b0", adj = c(0.5, 0))
-points(x = gcmap$x, y = gcmap$y, pch = 21, bg = "white")
-@
+<<fig=TRUE>>=
 
-Therefore, the visualFields package provides function to calculate where the ganglion cells that subserve a given location in the visual field are located and to calculate at which angle the axons of these ganglion cells enter the optic nerve head (optic disc), where they pass through the sclera (wall of the eye) to form the optic nerve. This function is based on Montesano et al. [@IMF:Montesano2020] which revisited the original work by Drasdo et al. [@IMF:Drasdo2007].
-
-<<>>=
-
-print(locmaps$p24d2$coord[23,])
-print(vf2gc(locmaps$p24d2$coord[23,]))
+vfplot(example2)
 
 @
 
-The Montesano Ganglion-cell displacement function can be in conjunction with the Jansonius map describing average ganglion cell bundles paths reaching different regions of the retina [@IMF:Jan2009] [@IMF:Jan2012]. First, we can obtain the angle of incidence on the optic never head (ONH)
-<<>>=
-print(loc2psi(vf2gc(locmaps$p24d2$coord[23,])))
-@
+In this graph, yellow represents probabilities < 0.05, orange probabilities < 0.02, red < 0.01, and dark red < 0.005.
 
-And from the angle of incidence, the nerve fiber bundle path can be calculated. Note that the function for calculating the trajectory will extrapolate the trajectory beyond the location of the visual field (usually to the raphe).
-
-<<warning=FALSE, fig=TRUE>>=
-
-# use loc2psi to calculate the incidence of the nerve fiber corresponding to a given location at the ONH
-angle_of_incidence_l19 <-loc2psi(locmaps$p24d2$coord[19, ])
-
-# use cart2jpolar for calculating the position of the visual field location in the polar coordinate system
-locations <- rbind(cart2jpolar(locmaps$p24d2$coord[19, ]),
-                   cart2jpolar(locmaps$p24d2$coord[23, ]),
-                   cart2jpolar(locmaps$p24d2$coord[47, ]),
-                   cart2jpolar(data.frame(x = 0, y = 0)))
-locations$labels <- c("l19", "l23", "l47", "fixation")
-
-# use bundePath to create a function for calculating the bundle path
-path_function_l19 <- bundlePath(angle_of_incidence_l19)
-path_function_l23 <- bundlePath(loc2psi(locmaps$p24d2$coord[23, ]))
-path_function_l47 <- bundlePath(loc2psi(locmaps$p24d2$coord[47, ]))
-
-bundle_path <- data.frame(y = 4:90,
-                          x_l19 = path_function_l19(4:90),
-                          x_l23 = path_function_l23(4:90),
-                          x_l47 = path_function_l47(4:90))
-ggplot(bundle_path, aes(y = y)) +
-  geom_line(aes(x = x_l19)) +
-  geom_point(data = locations, aes(x = -psi, y = r, color = labels, shape = labels == "fixation")) +
-  geom_line(aes(x = x_l23), color = "red") +
-  geom_line(aes(x = x_l47), color = "blue") +
-  coord_polar(start = pi / 2, direction = -1) +
-  scale_x_continuous(breaks = c(-180, -90, 0, 90, 180), limits = c(-180, 180)) +
-  scale_y_continuous(limits = c(0, 60)) +
-  scale_color_manual(values = c("l19" = "black", "l23" = "red", "l47" = "blue", "fixation" = "black")) +
-  guides(color = "none", shape = "none")
-
-@
-
-In this plot, the origin corresponds to the center of the ONH, the black triangle corresponds to the fovea, and the $180^\circ$ angle corresponds to the line between the ONH center and the fovea, which is, in reality, slightly tilted downward in most patients. I DO NOT SEE THIS, BUT I MAY BE MISSING SOMETHING. ALSO THE FOVEA (TRIANGLE IF I GOT IT RIGHT?) SHOULD BE A BIT BELOW THE HORIZONTAL MERIDIAN. THE POSITION OF THE CENTER OF THE BLIND SPOT IS (15,+2) IN THE MODEL (PLUS AND NOT MINUS BECAUSE THE MODEL IS SPECIFIED FOR THE ANATOMICAL RETINA, AND IT NEEDS TO BE TURNED UPSIDE DOWN TO MATCH THE VISUAL FIELD)
-
-[IVAN: I THOUGHT THAT PSI WAS THE ANGLE OF INCIDENCE IN THE OPTIC NERVE HEAD. THEREFORE, I CHOSE A POLAR PLOT AND NOT AN X-Y-PLOT. ALSO, I THOUGHT THAT THE 0° ANGLE OF INCIDENCE WAS DEFINED AS THE LINE BETWEEN FOVEA AND ONH. I DID NOT TURN THE POLAR COORDINATED ACCORDINGLY EVEN THOUGHT I MENTIONED THAT THE FOVEA WAS "TILTED DOWNWARD". BUT I DO NOT HAVE MUCH EXPERIENCE WITH THE MODEL, SO PLEASE CORRECT ME IF I'M WRONG. HOW WOULD I CALCULATE XY-COORDINATES?]
-
-For convenience, visualFields also contains a function to map the angle of incidence of bundles on the ONH to the corresponding angle of the circumpapillary retinal nerve fiber layer (cpRNFL) scan. This allows to map a visual field location to its corresponding ganglion cell location, to its angle of incidence on the ONH and finally to the angle in the cpRNFL scan.
-
-<<>>=
-
-l23 <- locmaps$p24d2$coord[23,]
-
-# location on the visual field to corresponding ganglion cell
-gc23 <- vf2gc(l23)
-print(gc23)
-
-# ganglion cell location to angle of incidence on the ONH
-psi23 <- loc2psi(gc23)
-print(psi23)
-
-# angle of incidence on the ONH to OCT cpRNFL scan angle
-ang23 <- psi2oct(psi23)
-print(ang23 - 360)
-
-@
+A gallery with all available visual field plots is available online at \url{
+https://rpubs.com/huchzi/1307927}.
 
 \subsection{Longitudinal analyses}
 Monitoring visual function over time in glaucoma patients is an essential clinical application of visual fields in ophthalmology and optometry practices. 
@@ -696,23 +468,8 @@ example3 <- vffilter(vfpwgSunyiu24d2,
 @
 
 \subsection{Plotting progression}
-The sparkline plot only shows the raw data: the series of visual field data (by default total deviation values) over time at each location of the visual field. The lines are plotted in red if they are very "noisy", i.e., if the median absolut deviation of the residuals from simple linear regression are greater than a certain threshold `thr` (by default 2 dB). Here is an example with the threshold set at 4 dB.
 
-<<fig=TRUE>>=
-
-vfsparklines(example3, thr = 4)
-
-@
-
-The legoplot is a visualization device designed to compare the first visual fields against the last ones on a series in a sort of "wait-and-see" fashion. By default it compares the first 3 visual fields against the last 3 of a series. And by default it compares total deviation values (and probabilities of damage, which relies on population based statistics). This example, however, shows sensitivities.
-
-<<fig=TRUE>>=
-
-vflegoplot(example3, type = "s")
-
-@
-
-The outer polygon shows the grayscale for the average sensitivity over the first 3 visual fields, whereas the inner circles show the grayscale for the average of the last 3. The numbers inside the inner circles are the difference in sensitivity between the last 3 and first 3 visual fields.
+The plot used for showing progression are shown in the gallery, which can be found at: \url{https://rpubs.com/huchzi/1307927}.
 
 \subsection{Statistical analysis}
 Statistical analysis can be performed with linear regression of global indices or with pointwise linear regression (one regression line for each location), which results in as many slopes and $p$-values as there are visual field locations (52 for the 24-2 grid after removing the two that fall on the anatomical region of the blind spot).
@@ -796,6 +553,152 @@ In the histogram representing the null distribution, you can see that a $S$-valu
 
 hist(prog2$cstats$cslall, xlab = "S-values", xlim = c(0, 200))
 abline(v = prog2$csl, col = "red", lwd = 2)
+
+@
+
+\subsection{Putting everything together}
+Single field analysis reports can be created as pdfs or as interactive reports with Shiny. To explore them, type in the R Console the following:
+
+<<eval = FALSE>>=
+vfsfa(example2, file = "test.pdf")
+vfsfashiny(example2)
+@
+
+\subsection{Structure function correlations in glaucoma patients}
+In the last years, techniques that provide detailed imaging of the retina and the optic nerve have made incredible advances. Therefore, correlation between structure and function is becoming more important than ever.
+
+To aid comparisons between structural insult and functional defect, it is useful to understand and model the anatomy of a typical healthy eye, even if such modeling through is imperfect given the large inter-individual differences in anatomical features [@IMF:Jan2009] [@IMF:Jan2012] [@IMF:Drasdo2007] [@IMF:Montesano2020]
+
+In glaucoma, the damage occurs in the optic nerve at the levels of the nerve fiber bundles, which consist of the axons of the retinal ganglion cells. In the retina, these cells form two layers: the ganglion cell layer that contains the cell bodies, and the retinal nerve fiber layer. However, the cell bodies of the retinal ganglion cells are displaced from the area where the photoreceptors are located that they receive input from. This displacement is relevant mostly in the center of the visual field, so it would greatly affect the structure-function comparisons on grids such as the 10-2. The following figure shows the visual field locations and the corresponding ganglion cell soma being stimulated.
+
+<<>>=
+
+locmap <- locmaps$p10d2
+gcmap <- vf2gc(locmap$coord)
+
+@
+
+<<echo=TRUE, fig=TRUE>>=
+
+plot_grid <- function() {
+  lines(-c(10, 0.5), c(0, 0), lwd = 2, col = "lightgray")
+  lines(c(0.5, 10), c(0, 0), lwd = 2, col = "lightgray")
+  lines(c(0, 0), -c(10, 0.5), lwd = 2, col = "lightgray")
+  lines(c(0, 0), c(0.5, 10), lwd = 2, col = "lightgray")
+  lines(x = c(-0.5, 0.5), y = c(0, 0), lwd = 1.5)
+  lines(x = c(0, 0), y = c(-0.5, 0.5), lwd = 1.5)
+  for(r in c(2.5, 5, 7.5, 10))
+    draw.circle(0, 0, r, lwd = 2, col = NA, border = "lightgray")
+  text(x = 11, y = 0, "10\u00b0", adj = c(0, 0.5))
+  text(x = 0, y = 11, "10\u00b0", adj = c(0.5, 0))
+}
+
+par(mfrow = c(1, 2))
+plot(x = locmap$coord$x, 
+     y = locmap$coord$y, 
+     type = "n", 
+     asp = 1,
+     xlim = c(-10, 12),
+     ylim = c(-10, 10),
+     yaxt = 'n',
+     xaxt = 'n',
+     bty = 'n',
+     xlab = "",
+     ylab = "",
+     main = "10-2 grid of test locations")
+plot_grid()
+points(x = locmap$coord$x, y = locmap$coord$y, bg = "white")
+
+plot(x = locmap$coord$x, 
+     y = locmap$coord$y, 
+     type = "n", 
+     asp = 1,
+     xlim = c(-10, 12),
+     ylim = c(-10, 10),
+     yaxt = 'n',
+     xaxt = 'n',
+     bty = 'n',
+     xlab = "",
+     ylab = "",
+     main = "Corresponding ganglion cells")
+plot_grid()
+points(x = gcmap$x, y = gcmap$y, pch = 21, bg = "white")
+@
+
+Therefore, the visualFields package provides function to calculate where the ganglion cells that subserve a given location in the visual field are located and to calculate at which angle the axons of these ganglion cells enter the optic nerve head (optic disc), where they pass through the sclera (wall of the eye) to form the optic nerve. This function is based on Montesano et al. [@IMF:Montesano2020] which revisited the original work by Drasdo et al. [@IMF:Drasdo2007].
+
+<<>>=
+
+print(locmaps$p24d2$coord[23,])
+print(vf2gc(locmaps$p24d2$coord[23,]))
+
+@
+
+The Montesano Ganglion-cell displacement function can be in conjunction with the Jansonius map describing average ganglion cell bundles paths reaching different regions of the retina [@IMF:Jan2009] [@IMF:Jan2012]. First, we can obtain the angle of incidence on the optic never head (ONH)
+
+<<>>=
+
+print(loc2psi(vf2gc(locmaps$p24d2$coord[23,])))
+
+@
+
+And from the angle of incidence, the nerve fiber bundle path can be calculated. Note that the function for calculating the trajectory will extrapolate the trajectory beyond the location of the visual field (usually to the raphe).
+
+<<warning=FALSE, fig=TRUE>>=
+
+# use loc2psi to calculate the incidence of the nerve fiber corresponding to a given location at the ONH
+angle_of_incidence_l19 <-loc2psi(locmaps$p24d2$coord[19, ])
+
+# use cart2jpolar for calculating the position of the visual field location in the polar coordinate system
+locations <- rbind(cart2jpolar(locmaps$p24d2$coord[19, ]),
+                   cart2jpolar(locmaps$p24d2$coord[23, ]),
+                   cart2jpolar(locmaps$p24d2$coord[47, ]),
+                   cart2jpolar(data.frame(x = 0, y = 0)))
+locations$labels <- c("l19", "l23", "l47", "fixation")
+
+# use bundePath to create a function for calculating the bundle path
+path_function_l19 <- bundlePath(angle_of_incidence_l19)
+path_function_l23 <- bundlePath(loc2psi(locmaps$p24d2$coord[23, ]))
+path_function_l47 <- bundlePath(loc2psi(locmaps$p24d2$coord[47, ]))
+
+bundle_path <- data.frame(y = 4:90,
+                          x_l19 = path_function_l19(4:90),
+                          x_l23 = path_function_l23(4:90),
+                          x_l47 = path_function_l47(4:90))
+ggplot(bundle_path, aes(y = y)) +
+  geom_line(aes(x = x_l19)) +
+  geom_point(data = locations, aes(x = -psi, y = r, color = labels, shape = labels == "fixation")) +
+  geom_line(aes(x = x_l23), color = "red") +
+  geom_line(aes(x = x_l47), color = "blue") +
+  coord_polar(start = pi / 2, direction = -1) +
+  scale_x_continuous(breaks = c(-180, -90, 0, 90, 180), limits = c(-180, 180)) +
+  scale_y_continuous(limits = c(0, 60)) +
+  scale_color_manual(values = c("l19" = "black", "l23" = "red", "l47" = "blue", "fixation" = "black")) +
+  guides(color = "none", shape = "none")
+
+@
+
+In this plot, the origin corresponds to the center of the ONH, the black triangle corresponds to the fovea, and the $180^\circ$ angle corresponds to the line between the ONH center and the fovea, which is, in reality, slightly tilted downward in most patients. I DO NOT SEE THIS, BUT I MAY BE MISSING SOMETHING. ALSO THE FOVEA (TRIANGLE IF I GOT IT RIGHT?) SHOULD BE A BIT BELOW THE HORIZONTAL MERIDIAN. THE POSITION OF THE CENTER OF THE BLIND SPOT IS (15,+2) IN THE MODEL (PLUS AND NOT MINUS BECAUSE THE MODEL IS SPECIFIED FOR THE ANATOMICAL RETINA, AND IT NEEDS TO BE TURNED UPSIDE DOWN TO MATCH THE VISUAL FIELD)
+
+[IVAN: I THOUGHT THAT PSI WAS THE ANGLE OF INCIDENCE IN THE OPTIC NERVE HEAD. THEREFORE, I CHOSE A POLAR PLOT AND NOT AN X-Y-PLOT. ALSO, I THOUGHT THAT THE 0° ANGLE OF INCIDENCE WAS DEFINED AS THE LINE BETWEEN FOVEA AND ONH. I DID NOT TURN THE POLAR COORDINATED ACCORDINGLY EVEN THOUGHT I MENTIONED THAT THE FOVEA WAS "TILTED DOWNWARD". BUT I DO NOT HAVE MUCH EXPERIENCE WITH THE MODEL, SO PLEASE CORRECT ME IF I'M WRONG. HOW WOULD I CALCULATE XY-COORDINATES?]
+
+For convenience, visualFields also contains a function to map the angle of incidence of bundles on the ONH to the corresponding angle of the circumpapillary retinal nerve fiber layer (cpRNFL) scan. This allows to map a visual field location to its corresponding ganglion cell location, to its angle of incidence on the ONH and finally to the angle in the cpRNFL scan.
+
+<<>>=
+
+l23 <- locmaps$p24d2$coord[23,]
+
+# location on the visual field to corresponding ganglion cell
+gc23 <- vf2gc(l23)
+print(gc23)
+
+# ganglion cell location to angle of incidence on the ONH
+psi23 <- loc2psi(gc23)
+print(psi23)
+
+# angle of incidence on the ONH to OCT cpRNFL scan angle
+ang23 <- psi2oct(psi23)
+print(ang23 - 360)
 
 @
 
@@ -990,7 +893,15 @@ Finally, if we want to go to the default settings, we ran again:
 setdefaults()
 @
 
-\subsection{Acknowledgments}
+%% -- Summary and discussion ---------------------------------------------------
+
+\section{Summary and discussion} \label{sec:summary}
+
+The \pkg{visualFields} package provides a comprehensive set of tools for analyzing visual field data. It is part of the Open Perimetry Initiative and supports a wide range of analyses, from basic visualizations to advanced statistical modeling. Future work could include extending the package to support additional perimeters and integrating new methods for visual field analysis.
+
+%% -- Acknowledgements ---------------------------------------------------
+
+\section{Acknowledgments}
 The visualField's package would not have existed if it wasn't for the important contribution of many contributors who partially funded the development of the package, and/or contributed datasets, code, and above all insight on visual fields analysis and about perimetry and visual sciences at large. Huge thanks to:
   - William H Swanson
   - Michael Wall
@@ -998,28 +909,6 @@ The visualField's package would not have existed if it wasn't for the important 
   - Paul H Artes
   - Giovanni Montesano
   - Mitchell W Dul
-  
-%% -- Methods ------------------------------------------------------------------
-
-\section{Methods} \label{sec:methods}
-
-\begin{leftbar}
-This section can include details about the methods implemented in the \pkg{visualFields} package, such as statistical models, algorithms, or visualization techniques. For now, this section is left as a placeholder.
-\end{leftbar}
-
-%% -- Results ------------------------------------------------------------------
-
-\section{Results} \label{sec:results}
-
-\begin{leftbar}
-This section can include results obtained using the \pkg{visualFields} package, such as example analyses or visualizations. For now, this section is left as a placeholder.
-\end{leftbar}
-
-%% -- Summary and discussion ---------------------------------------------------
-
-\section{Summary and discussion} \label{sec:summary}
-
-The \pkg{visualFields} package provides a comprehensive set of tools for analyzing visual field data. It is part of the Open Perimetry Initiative and supports a wide range of analyses, from basic visualizations to advanced statistical modeling. Future work could include extending the package to support additional perimeters and integrating new methods for visual field analysis.
 
 %% -- Bibliography -------------------------------------------------------------
 
