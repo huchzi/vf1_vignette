@@ -595,9 +595,7 @@ ggplot(bundle_path, aes(y = y)) +
 
 ```
 
-In this plot, the origin corresponds to the center of the ONH, the black triangle corresponds to the fovea, and the $180^\circ$ angle corresponds to the line between the ONH center and the fovea, which is, in reality, slightly tilted downward in most patients. I DO NOT SEE THIS, BUT I MAY BE MISSING SOMETHING. ALSO THE FOVEA (TRIANGLE IF I GOT IT RIGHT?) SHOULD BE A BIT BELOW THE HORIZONTAL MERIDIAN. THE POSITION OF THE CENTER OF THE BLIND SPOT IS (15,+2) IN THE MODEL (PLUS AND NOT MINUS BECAUSE THE MODEL IS SPECIFIED FOR THE ANATOMICAL RETINA, AND IT NEEDS TO BE TURNED UPSIDE DOWN TO MATCH THE VISUAL FIELD)
-
-[IVAN: I THOUGHT THAT PSI WAS THE ANGLE OF INCIDENCE IN THE OPTIC NERVE HEAD. THEREFORE, I CHOSE A POLAR PLOT AND NOT AN X-Y-PLOT. ALSO, I THOUGHT THAT THE 0° ANGLE OF INCIDENCE WAS DEFINED AS THE LINE BETWEEN FOVEA AND ONH. I DID NOT TURN THE POLAR COORDINATED ACCORDINGLY EVEN THOUGHT I MENTIONED THAT THE FOVEA WAS "TILTED DOWNWARD". BUT I DO NOT HAVE MUCH EXPERIENCE WITH THE MODEL, SO PLEASE CORRECT ME IF I'M WRONG. HOW WOULD I CALCULATE XY-COORDINATES?]
+In this plot, the origin corresponds to the center of the ONH, the black triangle corresponds to the fovea, and the $180^\circ$ angle corresponds to the line between the ONH center and the fovea, which is, in reality, slightly tilted downward in most patients.
 
 For convenience, visualFields also contains a function to map the angle of incidence of bundles on the ONH to the corresponding angle of the circumpapillary retinal nerve fiber layer (cpRNFL) scan. This allows to map a visual field location to its corresponding ganglion cell location, to its angle of incidence on the ONH and finally to the angle in the cpRNFL scan.
 
