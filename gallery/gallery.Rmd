@@ -1,0 +1,205 @@
+---
+title: visualFields 1.0.7
+author:
+  - Cord Huchzermeyer, Department of Ophthalmology, University Hospital Erlangen
+  - Iván Marín-Franch, Computational Optometry
+date: "`r Sys.Date()`"
+output:   
+  distill::distill_article:
+    theme: styles.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(visualFields)
+
+example2 <- vffilter(vfpwgRetest24d2, 
+                     id == "1" & 
+                       eye == "OD")[1,]
+
+example3 <- vffilter(vfpwgSunyiu24d2, 
+                     id == "sample1" & 
+                       eye == "OS")
+
+```
+
+# Plotting single fields
+
+*Please klick on the thumbnails to see more detail.*
+
+[![sensitivity-plot](thumbnails/sensitivity.png)](#sensitivity-plot)
+[![Projekt 1](thumbnails/total_deviation.png)](#total-deviation-plot)
+[![Projekt 1](thumbnails/pattern_deviation.png)](#pattern-deviation-plot)
+[![Projekt 1](thumbnails/td_sens.png)](#hybrid-td-and-sensitivity-plot)
+[![Projekt 1](thumbnails/pd_sens.png)](#hybrid-pd-and-sensitivity-plot)
+
+*Scroll down or click for ["plotting progression"](#plotting-progression).*
+
+# Plotting progression
+
+*Please klick on the thumbnails to see more detail.*
+
+[![Projekt 1](thumbnails/spark.png)](#sparkline-plot)
+[![Projekt 1](thumbnails/lego.png)](#lego-plot)
+[![Projekt 1](thumbnails/plr.png)](#pointwise-linear-regression-plot)
+
+*Scroll up or click or ["plotting single fields"](#plotting-single-fields).*
+
+---
+
+# Sensitivity plot
+
+The sensitivity plot shows the perimetric sensitivities [dB] at the different locations.
+
+These values are plotted directly and encoded in grayscale.
+
+```{r}
+
+example2 <- vffilter(vfpwgRetest24d2, 
+                     id == "1" & eye == "OD")[1,]
+
+vfplot(example2, type = "s")
+
+```
+
+This plot works without normal values.
+
+[**Back to single fields**](#plotting-single-fields)
+<br>
+[**Back to progression**](#plotting-progression)
+
+# Total deviation plot
+
+The total deviation plot shows the total deviation, that is the difference between the subjects sensitivity and an age-corrected normal sensitivity. Negative values signify loss of function. The probability that a given deviation occurs by chance in a normal observers is encoded by the color of the borders (yellow: < 0.05, orange: < 0.02, red: < 0.01, and dark red: < 0.005).
+
+```{r}
+
+example2 <- vffilter(vfpwgRetest24d2, 
+                     id == "1" & eye == "OD")[1,]
+
+vfplot(example2)
+
+```
+
+*Prerequisite:* A function for age-related normal values and probability tables. 
+
+[**Back to single fields**](#plotting-single-fields)
+<br>
+[**Back to progression**](#plotting-progression)
+
+# Pattern deviation plot
+
+The pattern deviation plot shows the difference between the the subject's total deviation and the mean deviation, therefore correcting for global loss of function. Negative values signify loss of function. The probability that a given deviation occurs by chance in a normal observers is encoded by the color of the borders (yellow: < 0.05, orange: < 0.02, red: < 0.01, and dark red: < 0.005).
+
+```{r}
+
+example2 <- vffilter(vfpwgRetest24d2, 
+                     id == "1" & eye == "OD")[1,]
+
+example2 <- vffilter(vfpwgRetest24d2, 
+                     id == "1" & eye == "OD")[1,]
+
+vfplot(example2, type = "pd")
+
+```
+
+*Prerequisite:* A function for age-related normal values and probability tables. 
+
+[**Back to single fields**](#plotting-single-fields)
+<br>
+[**Back to progression**](#plotting-progression)
+
+# Hybrid TD and Sensitivity plot
+
+This plot is a hybrid plot between a TD plot (values and borders) and a sensitivity plot (grayscale).
+
+```{r}
+
+example2 <- vffilter(vfpwgRetest24d2, 
+                     id == "1" & eye == "OD")[1,]
+
+vfplot(example2, type = "tds")
+
+```
+
+*Prerequisite:* Same as for TD plot -> function for age-related normal values and probability tables. 
+
+[**Back to single fields**](#plotting-single-fields)
+<br>
+[**Back to progression**](#plotting-progression)
+
+# Hybrid PD and Sensitivity plot
+
+This plot is a hybrid plot between a PD plot (values and borders) and a sensitivity plot (grayscale).
+
+```{r}
+
+example2 <- vffilter(vfpwgRetest24d2, 
+                     id == "1" & eye == "OD")[1,]
+
+vfplot(example2, type = "pds")
+
+```
+
+*Prerequisite:* Same as for PD plot -> function for age-related normal values and probability tables. 
+
+[**Back to single fields**](#plotting-single-fields)
+<br>
+[**Back to progression**](#plotting-progression)
+
+# Sparkline plot
+
+The sparkline plot only shows the raw data: the series of visual field data (by default total deviation values) over time at each location of the visual field. The lines are plotted in red if they are very "noisy", i.e., if the median absolut deviation of the residuals from simple linear regression are greater than a certain threshold `thr` (by default 2 dB). Here is an example with the threshold set at 4 dB.
+
+```{r}
+
+example3 <- vffilter(vfpwgSunyiu24d2, 
+                     id == "sample1" & 
+                       eye == "OS")
+
+vfsparklines(example3, thr = 4)
+
+```
+
+*Prerequisite:* Same as for TD plot -> function for age-related normal values and probability tables. 
+
+[**Back to single fields**](#plotting-single-fields)
+<br>
+[**Back to progression**](#plotting-progression)
+
+# Lego plot
+
+The legoplot is a visualization device designed to compare the first visual fields against the last ones on a series in a sort of "wait-and-see" fashion. By default it compares the first 3 visual fields against the last 3 of a series. And by default it compares total deviation values (and probabilities of damage, which relies on population based statistics). This example, however, shows sensitivities.
+
+The outer polygon shows the grayscale for the average sensitivity over the first 3 visual fields, whereas the inner circles show the grayscale for the average of the last 3. The numbers inside the inner circles are the difference in sensitivity between the last 3 and first 3 visual fields.
+
+```{r}
+
+example3 <- vffilter(vfpwgSunyiu24d2, 
+                     id == "sample1" & 
+                       eye == "OS")
+
+vflegoplot(example3, type = "s")
+
+```
+
+[**Back to single fields**](#plotting-single-fields)
+<br>
+[**Back to progression**](#plotting-progression)
+
+# Pointwise linear regression plot
+
+```{r}
+
+example3 <- vffilter(vfpwgSunyiu24d2, 
+                     id == "sample1" & 
+                       eye == "OS")
+
+vfplotplr(example3)
+
+```
+
+[**Back to single fields**](#plotting-single-fields)
+<br>
+[**Back to progression**](#plotting-progression)

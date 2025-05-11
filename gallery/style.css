@@ -1,0 +1,59 @@
+
+<style>
+.gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.gallery-item {
+  width: 180px;
+  text-align: center;
+}
+.gallery-thumb {
+  width: 160px;
+  height: 110px;
+  object-fit: cover;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  transition: box-shadow 0.2s;
+}
+.gallery-thumb:hover {
+  box-shadow: 0 0 10px #888;
+}
+</style>
+
+## Galerie
+
+<div class="gallery">
+
+<div class="gallery-item">
+  <a href="projekt1.html">
+    <img src="thumbnails/projekt1.png" class="gallery-thumb" alt="Projekt 1 Thumbnail">
+    <br>
+    <strong>Projekt 1</strong>
+  </a>
+  <p>Kurzbeschreibung von Projekt 1.</p>
+</div>
+
+<div class="gallery-item">
+  <a href="projekt2.html">
+    <img src="thumbnails/projekt2.png" class="gallery-thumb" alt="Projekt 2 Thumbnail">
+    <br>
+    <strong>Projekt 2</strong>
+  </a>
+  <p>Kurzbeschreibung von Projekt 2.</p>
+</div>
+
+<div class="gallery-item">
+  <a href="projekt3.html">
+    <img src="thumbnails/projekt3.png" class="gallery-thumb" alt="Projekt 3 Thumbnail">
+    <br>
+    <strong>Projekt 3</strong>
+  </a>
+  <p>Kurzbeschreibung von Projekt 3.</p>
+</div>
+
+<!-- Weitere Projekte einfach nach diesem Muster ergänzen -->
+
+</div>

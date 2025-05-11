@@ -20,19 +20,19 @@ The OPI [@IMF:Tur2012] [@IMF:Marin2022a] is a standard for interfacing with visu
 The visualFields package, part of the OPI, is a collection of tools for analyzing the field of vision. It provides a framework for the development and use of innovative methods for visualization, statistical analysis, and clinical interpretation of visual-field loss and its change over time.
 
 To install the released version of the package, run 
-```{r eval=FALSE}
+```{r install from CRAN, eval=FALSE}
 install.packages("visualFields")
 ```
 
 To install the newest version of the package, run:
-```{r eval=FALSE}
+```{r install from github, eval=FALSE}
 install.packages("devtools")
 library(devtools)
 install_github("imarinfr/vf1/source")
 ```
 
 To load the package run
-```{r}
+```{r load package}
 library(visualFields)
 ```
 
@@ -658,25 +658,25 @@ The outer polygon shows the grayscale for the average sensitivity over the first
 ## Statistical analysis
 Statistical analysis can be performed with linear regression of global indices or with pointwise linear regression (one regression line for each location), which results in as many slopes and $p$-values as there are visual field locations (52 for the 24-2 grid after removing the two that fall on the anatomical region of the blind spot).
 
-The *glr* function performs linear regression on global parameters. In the following example, the patient loses `r round(abs(glr(getgl(example3), type = "md")$sl), 2)` dB each year and this change is statistically significant, with a $p$-value < `r format(ceiling(1000 * glr(getgl(example3), type = "md")$pval) / 1000, nsmall = 3)`.
+The *glr* function performs linear regression on global parameters. In the following example, the patient loses `r # round(abs(glr(getgl(example3))$sl), 2)` dB each year and this change is statistically significant, with a $p$-value < `r # format(ceiling(1000 * glr(getgl(example3))$pval) / 1000, nsmall = 3)`.
 
 ```{r}
 
-md_regression <- data.frame(time = glr(getgl(example3), type = "md")$years,
-           md = glr(getgl(example3), type = "md")$data)
-
-globallm <- glr(getgl(example3), type = "md")
-slope <- globallm$sl
-intercept <- globallm$int
-pval <- globallm$pval
-
-ggplot(md_regression, aes(x = time, y =md)) +
-  geom_point() +
-  geom_abline(slope = slope, intercept = intercept)
-
-print(paste("intercept:", intercept))
-print(paste("slope:", slope))
-print(paste("p-value:", pval))
+# md_regression <- data.frame(time = glr(getgl(example3))$years,
+#            md = glr(getgl(example3))$data)
+# 
+# globallm <- glr(getgl(example3))
+# slope <- globallm$sl
+# intercept <- globallm$int
+# pval <- globallm$pval
+# 
+# ggplot(md_regression, aes(x = time, y = md)) +
+#   geom_point() +
+#   geom_abline(slope = slope, intercept = intercept)
+# 
+# print(paste("intercept:", intercept))
+# print(paste("slope:", slope))
+# print(paste("p-value:", pval))
 
 ```
 

@@ -1,0 +1,168 @@
+---
+title: visualFields 1.x
+author:
+  - Cord Huchzermeyer, Department of Ophthalmology, University Hospital Erlangen
+  - Iván Marín-Franch, Computational Optometry
+date: "`r Sys.Date()`"
+output:   
+  distill::distill_article:
+    theme: styles.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(visualFields)
+library(ggplot2)
+library(plotrix)
+
+example1 <- vffilter(vfpwgSunyiu24d2, 
+                     id == "sample1" & 
+                       eye == "OD")[1, ]
+
+example2 <- vffilter(vfpwgRetest24d2, 
+                     id == "1" & 
+                       eye == "OD")[1,]
+
+example3 <- vffilter(vfpwgSunyiu24d2, 
+                     id == "sample1" & 
+                       eye == "OS")
+
+```
+
+# Plotting the visual field
+
+[![Projekt 1](thumbnails/projekt1.png)](projekt1.html)
+
+```{r}
+
+png("thumbnails/sensitivity.png", width = 200, height = 200, units = "px")
+vfplot(example2, type = "s")
+dev.off()
+```
+
+```{r}
+
+png("thumbnails/total_deviation.png", width = 200, height = 200, units = "px")
+vfplot(example2)
+dev.off()
+
+```
+
+In this graph, yellow represents probabilities < 0.05, orange probabilities < 0.02, red < 0.01, and dark red < 0.005.
+
+```{r}
+
+png("thumbnails/pattern_deviation.png", width = 200, height = 200, units = "px")
+vfplot(example2, type = "pd")
+dev.off()
+
+```
+
+Pattern deviation values
+
+
+
+And an hybrid plot showing total deviation values and probabilities along with a grayscale representing the sensitivities.
+
+```{r}
+
+png("thumbnails/td_sens.png", width = 200, height = 200, units = "px")
+vfplot(example2, type = "tds")
+dev.off()
+
+```
+
+And a similar hybrid plot but with pattern deviation values and probabilities.
+
+```{r}
+
+png("thumbnails/pd_sens.png", width = 200, height = 200, units = "px")
+vfplot(example2, type = "pds")
+dev.off()
+
+```
+
+# Longitudinal analyses
+
+```{r}
+
+png("thumbnails/spark.png", width = 200, height = 200, units = "px")
+vfsparklines(example3, thr = 4)
+dev.off()
+
+```
+
+```{r}
+
+png("thumbnails/lego.png", width = 200, height = 200, units = "px")
+vflegoplot(example3, type = "s")
+dev.off()
+
+```
+
+```{r}
+
+png("thumbnails/plr.png", width = 200, height = 200, units = "px")
+vfplotplr(example3)
+dev.off()
+
+```
+
+## Plotting progression
+The sparkline plot only shows the raw data: the series of visual field data (by default total deviation values) over time at each location of the visual field. The lines are plotted in red if they are very "noisy", i.e., if the median absolut deviation of the residuals from simple linear regression are greater than a certain threshold `thr` (by default 2 dB). Here is an example with the threshold set at 4 dB.
+
+
+
+The legoplot is a visualization device designed to compare the first visual fields against the last ones on a series in a sort of "wait-and-see" fashion. By default it compares the first 3 visual fields against the last 3 of a series. And by default it compares total deviation values (and probabilities of damage, which relies on population based statistics). This example, however, shows sensitivities.
+
+
+
+The outer polygon shows the grayscale for the average sensitivity over the first 3 visual fields, whereas the inner circles show the grayscale for the average of the last 3. The numbers inside the inner circles are the difference in sensitivity between the last 3 and first 3 visual fields.
+
+## Statistical analysis
+Statistical analysis can be performed with linear regression of global indices or with pointwise linear regression (one regression line for each location), which results in as many slopes and $p$-values as there are visual field locations (52 for the 24-2 grid after removing the two that fall on the anatomical region of the blind spot).
+
+The *glr* function performs linear regression on global parameters. In the following example, the patient loses `r # round(abs(glr(getgl(example3))$sl), 2)` dB each year and this change is statistically significant, with a $p$-value < `r # format(ceiling(1000 * glr(getgl(example3))$pval) / 1000, nsmall = 3)`.
+
+```{r}
+
+# md_regression <- data.frame(time = glr(getgl(example3))$years,
+#            md = glr(getgl(example3))$data)
+# 
+# globallm <- glr(getgl(example3))
+# slope <- globallm$sl
+# intercept <- globallm$int
+# pval <- globallm$pval
+# 
+# ggplot(md_regression, aes(x = time, y = md)) +
+#   geom_point() +
+#   geom_abline(slope = slope, intercept = intercept)
+# 
+# print(paste("intercept:", intercept))
+# print(paste("slope:", slope))
+# print(paste("p-value:", pval))
+
+```
+
+The `plr` function performs pointwise linear regression (i.e. linear regression for each location in the field separately). Specific parameters have to be chosen, in order to detect disease progression. For example, progression might be defined as at least 3 locations having a slope less than 0 dB / year and a $p$-value < 0.05.
+
+
+The results of `plr` can be displayed using the following: 
+
+
+
+
+
+
+
+```{r}
+
+# hist(prog2$cstats$cslall, xlab = "S-values", xlim = c(0, 200))
+# abline(v = prog2$csl, col = "red", lwd = 2)
+
+```
+
+
+
+
