@@ -62,15 +62,16 @@ library("MASS")
 
 \section[Introduction: Visual Fields in R]{Introduction: Visual Fields in \proglang{R}} \label{sec:intro}
 
-The Open Perimetry Initiative (OPI) \citep{IMF:Tur2012, IMF:Marin2022a} is a standard for interfacing with visual field testing machines (perimeters). It specifies basic functions that allow many visual field tests to be constructed. As of October 2017, it is fully implemented on the Octopus 900 and partially on the Heidelberg Edge Perimeter, the Kowa AP 7000, the CrewT IMO, and the Centervue Compass.
 
-The \pkg{visualFields} package, part of the OPI, is a collection of tools for analyzing the field of vision. It provides a framework for the development and use of innovative methods for statistical analysis, visualization, and clinical interpretation of visual-field loss and its change over time.
 
+The Open Perimetry Initiative (OPI) \citep{IMF:Tur2012, IMF:Marin2022a} is an open standard for interfacing with visual field testing devices (perimeters). It defines a set of core functions that enable the construction of a wide range of visual field tests. As of October 2017, OPI is fully implemented on the Octopus 900 and partially supported on the Heidelberg Edge Perimeter, Kowa AP 7000, CrewT IMO, and Centervue Compass.
+
+The \pkg{visualFields} package, developed as part of the OPI ecosystem, provides a suite of tools for the statistical analysis and visualization of visual field data. It offers a flexible framework to support the development and application of innovative methods for analyzing visual field loss and its progression over time, with applications in both research and clinical settings.
 \subsection{What is the visual field?}
 
-The visual field is the extent of the world that can be seen and refers to both the central and the peripheral vision. It is measured in degrees of visual angle, with the center of vision being $0^\circ$, points on the temporal and superior regions of the visual field being positive angles, and those in the inferior and nasal being negative. 
+The visual field refers to the entire area that can be seen at a given moment, encompassing both central and peripheral vision. It is typically measured in degrees of visual angle, with the fixation point defined as the origin at $x = 0^\circ$ and $y = 0^\circ$. Locations temporal and superior to fixation are represented by positive angles, while those nasal and inferior are denoted by negative angles.
 
-In healthy eyes, the sensitivity to light contrast decreases with eccentricity (i.e. increasing visual angle. The difference in light sensitivity over the visual field as a function of eccentricity is known as Traquair's \emph{hill of vision} \citep{IMF:Traquair1938}. \ref{hill} below shows the hill of vision as rendered by Aulhorn \& Harms \citep{IMF:Aul1967}.
+In healthy vision, most visual functions, particularly light sensitivity, decline with increasing eccentricity—i.e., distance from the center of fixation. This decline in differential light sensitivity forms a three-dimensional structure known as the hill of vision, also referred to as Traquair’s island of vision \citep{IMF:Traquair1938}. Figure~\ref{hill} below shows a classic rendering of the hill of vision by Aulhorn and Harms \citep{IMF:Aul1967}.
 
 \begin{figure}[t!]
 \centering
@@ -80,17 +81,86 @@ In healthy eyes, the sensitivity to light contrast decreases with eccentricity (
 
 \subsection{What is perimetry?}
 
-Perimetry (visual field testing) measures a patient's sensitivity to light differences at different locations of the visual field. Thus, it is a psychometric way of quantifying the visual field. Psychophysical tests systematically measure the relationship between physical stimulus strength and the subjective perception. This is performed by varying the stimulus and asking the observer to communicate his perception with a limited number of allowed responses. In visual field testing, the observer usually presses a button when a light spot is perceived. The relationship between stimulus and perception is analyzed using mathematical model. Commonly, these models result in an estimate of a \textbf{threshold}, which denotes either the absolute stimulus strength that can just barely be perceived or the smallest difference that can be perceived as different. 
+\emph{Perimetry} (visual field testing) uses psychophysical methods to quantify the visual field by measuring a patient's sensitivity to light differences at various locations within the field. Psychophysical tests allow for the scientific measurement of the relationship between physical stimulus strength and subjective perception. This is achieved by systematically varying the stimulus strength across discrete trials based on the observer's responses. The observer is typically restricted to a limited set of responses, and the stimuli are varied according to a predefined algorithm.
 
-Its purpose is to estimate the \textbf{hill of vision} as best as possible within the confines and limitations of a clinical setting. The most common type of visual field testing is \textbf{static automated perimetry (SAP)}, which is performed with in a dome-shaped device, so that the distance between the stimulus and the eye equal for all locations within the visual field. In contrast, \textbf{campimetry} is performed with a flat screen. Campimetry may be used more often in the future, because computer screens and virtual reality devices may be used for telemedicine.
+In visual field testing, the observer either presses or does not press a button within a fixed time window following the presentation of a light increment in the visual field (a yes/no response). The relationship between stimulus strength and response probability is modeled by a psychometric function, which characterizes the likelihood of a "yes" response as a function of stimulus strength. These models yield an estimate of the threshold, defined as the stimulus strength at which the observer detects the stimulus with a probability of 50\%.
 
-The visual fields package was created to analyze data from standard automated perimetry\textbf{SAP}, where the light sensitivity is measured at fixed, discrete locations in the visual field. Kinetic perimetry, where locations of isosensitivity to fixed, discrete luminance increments, is beyond the scope of the visualFields package.
+The most straightforward method for estimating this threshold is the method of constant stimuli, in which stimuli are presented multiple times at several discrete, fixed intensities around the anticipated threshold. This approach yields an accurate estimate of the psychometric function, which is typically modeled using a cumulative distribution function (CDF), such as the Gaussian CDF. However, this method is inefficient and requires a large number of trials, since stimulus levels far from the threshold provide little information. Long test durations negatively affect attention, thereby reducing both the accuracy and precision of the threshold estimates.
 
-In SAP, the goal is to quantify sensitivity by increasing and decreasing the light differential (or contrast) between stimulus and background and asking the observer to press the button when they detect the presence of the visual stimulus. The contrast threshold is determined at each location of the visual field as the one for which the observer is able to detect the presence of the stimulus 50\% of the times. Such thresholds are estimated at a fixed number of locations forming a regular grid as the one in the figure above. 
+To improve efficiency, adaptive algorithms have been developed to reduce the number of stimulus presentations with minimal compromise in accuracy. A commonly used example is the staircase algorithm, in which the stimulus intensity decreases after a "seen" response and increases after a "not seen" response. The step size is halved after each reversal (i.e., a change in response direction). More sophisticated algorithms balance precision and test duration, often incorporating information from adjacent locations in the visual field. A notable example is the Swedish Interactive Threshold Algorithm (SITA) used in the Humphrey Field Analyzer.
 
-For the typical SAP test, an observer (usually a patient in an ophthalmology or optometry clinic) is comfortably seated in front of a perimeter and puts his head on a chin rest looking into a white Ganzfeld dome (or hemisphere). The perimeter is located in a dimly lit, calm room and the observer has been instructed by an experienced technician before the examination. During the test, the observer looks at a fixation target (a dot, a cross, a diamond, or other) in the center of the dome. The observer presses a button in his hand any time a stimulus appears anywhere in the dome. These stimuli are presented only for a short time span (typically 100-200ms), so that the observer has no time to shift his gaze to the stimulus. A press of the button will only be linked to a presentation when it occurs within a given time window after the presentation. A computer will present stimuli several times at different locations in a grid pattern and in a spatially random order. For each location, the stimulus contrast will be decreased if the observer responded to the previous response and increased if not.
+At the conclusion of the test, the inverse of the contrast threshold, $\Delta L_{\text{threshold}}$, is recorded at each location using a logarithmic decibel (dB) scale. This scale is defined as the attenuation from the maximum possible stimulus contrast, $\Delta L_{\text{max}}$:
 
-The figure below shows the most common grid of locations tested during {SAP}. The gray ellipse corresponds to the blind spot of the hill of vision and, therefore, the red dots are expected to have no sensitivity.
+\begin{equation}
+dB = -10\ \rm log \left (\frac{\Delta L_{\rm thr}}{\Delta L_{\rm max}} \right)\ .
+\end{equation}
+
+For common devices such as the Humphrey Field Analyzer and the Octopus 900, the maximum luminance differential is $\Delta L_{\text{max}} = \frac{10{,}000\ \text{apostilbs}}{\pi} \approx 3183.1\ \text{cd},\text{m}^{-2}$.
+
+The visualFields package was developed to analyze data from static perimetry, where thresholds are measured at fixed, discrete locations in the visual field. Kinetic perimetry, in which a stimulus of constant luminance is moved across the field to identify isosensitivity contours, is outside the scope of this package.
+
+Static perimetry aims to estimate the hill of vision as accurately as possible within the constraints of clinical practice. The most common form is standard automated perimetry (SAP), which is performed inside a dome-shaped device (a Ganzfeld perimeter) to ensure a uniform distance between the eye and all stimulus locations. In contrast, campimetry uses a flat screen and may become more common with the increasing availability of computer screens and virtual reality devices for telemedicine.
+
+\subsection{How is perimetry performed?}
+
+In a typical SAP test, the patient is seated comfortably in front of a perimeter and places their head on a chin rest while looking into a white Ganzfeld dome. The room is dimly lit and quiet, and the patient is briefed by an experienced technician before the examination. During the test, the patient fixates on a central target (e.g., a dot, cross, or diamond), and presses a button whenever a light stimulus is perceived.
+
+Stimuli are presented briefly (typically 100–200 ms), minimizing the opportunity for eye movement. A response is only considered valid if it occurs within a defined time window following the stimulus. A computer presents stimuli at discrete locations in a grid, in randomized order. The stimulus intensity at each location is adjusted adaptively based on the patient' responses. Because of randomization, the patient cannot anticipate where the next stimulus will appear.
+
+The figure below shows the commonly used 24-2 grid of test locations. The gray ellipse represents the anatomical blind spot; the red points fall within this region and are expected to show no sensitivity.
+
+The grid, stimulus size, presentation duration, and intensity algorithm remain constant throughout the test and together define the perimetry program. It is important to note that results from different perimetry programs are not directly comparable.
+
+\subsection{False negatives and false positives}
+
+Deviations from the expected psychometric function may arise due to observer inattention or short-term threshold fluctuations. In diseases like glaucoma, short-term variability is often elevated in damaged regions of the visual field. Response quality is typically assessed by:
+
+\begin{enumeration}
+  \item [False negatives (FNR)] Missed responses to stimuli that were previously seen.
+  \item [False positives (FPR)] Responses when no stimulus is presented
+  \item [Fixation losses] Responses to stimuli presented within the blind spot
+\end{enumeration}
+
+These metrics help assess the reliability of a test.
+
+\subsection{Clinical applications of perimetry}
+
+In clinical settings, perimetry is used to detect and monitor visual field defects or scotomas, which can arise from damage anywhere along the visual pathway—from the ocular media (cornea, lens, vitreous), to the retina, optic nerve, or visual cortex.
+
+The spatial pattern of visual field loss often provides diagnostic clues. For instance, a right occipital lobe infarct can result in left homonymous hemianopia—complete loss of the left visual field in both eyes, with a sharp border along the vertical meridian. Conversely, glaucoma typically presents as arcuate defects, often beginning in the upper or lower hemifield, reflecting characteristic damage to the optic nerve head.
+
+Perimetry supports not only diagnosis but also evaluation of functional impact (e.g., fitness to drive) and disease progression monitoring.
+
+%% -- Methods ------------------------------------------------------------------
+
+\section{Methods} \label{sec:methods}
+
+\subsection{Installation}
+
+The package is available on CRAN under the Apache 2.0 license and can be installed with the following command:
+
+<<eval=FALSE>>=
+
+install.packages("visualFields")
+
+@
+
+To install the newest version of the package, run:
+
+<<eval=FALSE>>=
+
+library(devtools)
+install_github("imarinfr/vf1/source")
+
+@
+
+<<echo=FALSE>>=
+
+library(ggplot2)
+library(plotrix)
+
+@
+
 
 <<echo=FALSE, fig=TRUE>>=
 
@@ -132,17 +202,6 @@ points(x = default_locmap$coord$x[default_locmap$bs],
 
 @
 
-
-At the end of the test, the inverse of the contrast threshold, $\Delta L_{\rm threshold}$ at each location is recorded in a decibel scale (dB). This dB scale is normally defined as attenuation from the maximum stimulus possible $\Delta L_{\rm max}$ as:
-\begin{equation}
-dB = -10\ \rm log \left (\frac{\Delta L_{\rm thr}}{\Delta L_{\rm max}} \right)\ .
-\end{equation}
-For the most common devices, the Humphrey Field Analyzer and the Octopus 900, the maximum luminance differential $\Delta L_{\rm max}$ is $10000\ (\rm apostilb) / \pi = 3183.1\ cd\ m^{-2}$.
-
-These are the data expected by the visualFields package for statistical analysis and generation of visualization devices.
-
-
-
 \subsection{Grid patterns}
 The spatial position of the points $l_1$ to $l_k$ in the visual field is found in the location map (locmap) and depends on the pattern used by the perimeter. When analyzing data, you need to specify the locmap.
 
@@ -168,65 +227,6 @@ names(locmaps)
 @
 
 Locations of the locmap that cover the blind spot are reported in the locmaps lists under the variable bs. If the blind spot is outside the pattern (for example in the 10° visual fields) or is spared by the grid as in the Octopus G1 pattern, the list item bs is set to `r numeric(0)`.
-
-The grid, the stimulus size, presentation time and the algorithm responsible for varying intensities remain constant throughout the examination and are called a perimetry program. Not that examinations performed with different programs cannot be directly compared.
-
-\subsection{Measurements}
-Although usually not seen in visual field data, the most elementary unit of a static visual field test is a subject's response. It consists of the constant stimulus parameters (size, presentation time, background luminance), the stimulus location, the stimulus intensity and whether the subject pressed the button within a predefined time window to indicate that he saw the stimulus.
-
-Below a certain \textbf{threshold} luminance, a stimulus is usually not perceivable, above the threshold, the stimulus is usually perceived. However, close to threshold, a stimulus is not always reliably perceived. By definition, the threshold is the luminance of the stimulus where the subject will see the stimulus with a probability of 50\%.
-
-The most straightforward to measure such a threshold would be to present stimuli several time at a number different, fixed stimulus strengths. This method is called the method of \textbf{constant stimuli} and results in the \textbf{psychometric function}, which is usually modeled with a cumulative distribution function (CDF), for example a Gaussian CDF. However, this is not the most effective way to estimate a threshold, because stimulus strength far from the threshold will have probabilities to be seen that are close to either 0\% or 100\%. Testing these strengths several times does not yield much information.
-
-Therefore, advanced algorithms were developed for reducing the number of stimulus presentations with limited trade-off concerning the accuracy of the measurements. A staircase algorithm where the intensity is decreased by a certain step size when the stimulus was seen, increased when not seen, and the step size is halved upon each revearsal (seen to not seen or vice versa) is a more efficient algorithms that is frequently used. More efficient algorithms usually make a trade-off between precision of the threshold estimate and test time, and often incorporate information on responses in neighboring locations into the algorithm. Examples include the Swedish Interactive Threshold Algorithm (SITA) of the Humphery Perimeters. Note that long test times negatively affect attention and therefore both accuracy and precision of the threshold estimates.
-
-\subsection{False negatives and false positives}
-
-Residual deviation from the psychometric function may occur due to inattention of the observer but also due to short-term fluctuation of the threshold. For example, it has been shown that the threshold underlies short-term fluctuates in the areas where light sensitivity was negatively affected by glaucoma, a disease of the optic nerve.
-
-When the observer does not see a stimulus that is clearly above a level that has been seen before, this is called a false negative response (fnr). In contrast, when the subject presses the button although no stimulus is presented, this is a false positive response (fpr).
-
-The cooperation of the subject is also tested in some perimeters by presenting deliberately presenting a stimulus at the location of the blind spot. If the subjects sees that stimulus, it must be assumed that he did not fixate correctly (fixation loss) and that the reliability of the field is decreased.
-
-\subsection{Clinical applications of perimetry}
-In clinical practice, visual field testing is used to identify decreases in visual function caused by disease. Such \textbf{visual field defects} or \textbf{scotomas} can be caused by diseases that affect tissue anywhere along the optic pathway. This ranges from the optic media (cornea / lens / vitreous) which transmit light, to the retina, which detects lights and preprocesses visual information, to the optic nerve, which transmits information, and up to the visual cortex.
-
-Often, clinicians can draw reliable conclusions about the localisation of the disease by the pattern of the visual field defects. For example, an infarction of the right visual cortex leads complete blindness in the left hemispheres of both eyes with a very distinct border along the vertical meridian. Therefore, the patient does not perceive anything to the right of the point he looks at. On the other side of the vertical meridian the visual field is normal. In contrast, patients with glaucoma start with areas of slightly decreased light sensitivity often in the upper or lower hemifield with a bow-shaped (arcuate) pattern cause by the localisation of damage in the optic nerve head.
-
-Visual field tests can be used to diagnose disease, to appraise the functional consequences of disease (for example: can the patient still drive a vehicle?), and to monitor progression.
-
-[THIS SEEMS TO BE A BIT OUF OF PLACE, BUT I PREFER NOT TO EDIT THIS PART MYSELF]
-The most advanced statistical methods have been created for monitoring glaucoma progression. The open-angle glaucomas are a group of slowly progressing, chronic neurodegenerative diseases of the optic nerve, often caused by increased eye pressure. Patients need consequent monitoring over many years and slight changes in the visual field must be detected reliably. Therefore, many of the functions of the visualField package focus on glaucoma research.
-
-%% -- Methods ------------------------------------------------------------------
-
-\section{Methods} \label{sec:methods}
-
-\subsection{Installation}
-
-The package is available on CRAN under the Apache 2.0 license and can be installed with the following command:
-
-<<eval=FALSE>>=
-
-install.packages("visualFields")
-
-@
-
-To install the newest version of the package, run:
-
-<<eval=FALSE>>=
-
-library(devtools)
-install_github("imarinfr/vf1/source")
-
-@
-
-<<echo=FALSE>>=
-
-library(ggplot2)
-library(plotrix)
-
-@
 
 \subsection{Loading data}
 The visualField package contains some example data. This dataset contains the results of 42 visual field tests of one patient (id: sample1). The patient has primary open-angle glaucoma (type: pwg).
