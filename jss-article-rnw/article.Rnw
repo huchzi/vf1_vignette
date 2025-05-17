@@ -455,8 +455,49 @@ A plot of the 10-2 grid and corresponding ganglion cell bodies:
 
 <<echo=TRUE, fig=TRUE>>=
 
-plotting code from original omitted for brevity
+plot_grid <- function() {
+  lines(-c(10, 0.5), c(0, 0), lwd = 2, col = "lightgray")
+  lines(c(0.5, 10), c(0, 0), lwd = 2, col = "lightgray")
+  lines(c(0, 0), -c(10, 0.5), lwd = 2, col = "lightgray")
+  lines(c(0, 0), c(0.5, 10), lwd = 2, col = "lightgray")
+  lines(x = c(-0.5, 0.5), y = c(0, 0), lwd = 1.5)
+  lines(x = c(0, 0), y = c(-0.5, 0.5), lwd = 1.5)
+  for(r in c(2.5, 5, 7.5, 10))
+    draw.circle(0, 0, r, lwd = 2, col = NA, border = "lightgray")
+  text(x = 11, y = 0, "10\u00b0", adj = c(0, 0.5))
+  text(x = 0, y = 11, "10\u00b0", adj = c(0.5, 0))
+}
 
+par(mfrow = c(1, 2))
+plot(x = locmap$coord$x, 
+     y = locmap$coord$y, 
+     type = "n", 
+     asp = 1,
+     xlim = c(-10, 12),
+     ylim = c(-10, 10),
+     yaxt = 'n',
+     xaxt = 'n',
+     bty = 'n',
+     xlab = "",
+     ylab = "",
+     main = "10-2 grid of test locations")
+plot_grid()
+points(x = locmap$coord$x, y = locmap$coord$y, bg = "white")
+
+plot(x = locmap$coord$x, 
+     y = locmap$coord$y, 
+     type = "n", 
+     asp = 1,
+     xlim = c(-10, 12),
+     ylim = c(-10, 10),
+     yaxt = 'n',
+     xaxt = 'n',
+     bty = 'n',
+     xlab = "",
+     ylab = "",
+     main = "Corresponding ganglion cells")
+plot_grid()
+points(x = gcmap$x, y = gcmap$y, pch = 21, bg = "white")
 @
 
 Nerve fiber paths from each location to the optic disc can also be modeled, using Jansonius' framework [@IMF:Jan2009; @IMF:Jan2012].
