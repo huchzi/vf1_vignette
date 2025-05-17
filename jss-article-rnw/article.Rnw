@@ -19,12 +19,14 @@
 <<preliminaries, echo=FALSE, results=hide>>=
 options(prompt = "R> ", continue = "+  ", width = 70, useFancyQuotes = FALSE)
 library("MASS")
+library("plotrix")
+library("ggplot2")
 @
 
 
 %% -- Article metainformation (author, title, ...) -----------------------------
 
-\author{Cord Huchzermeyer~\orcidlink{0000-0002-0408-8981}\\Department of Ophthalmology, University Hospital Erlangen
+\author{Cord Huchzermeyer~\orcidlink{0000-0002-0408-8981}\\Department of Ophthalmology\\University Hospital Erlangen
    \And Iván Marín-Franch\\Computational Optometry}
 \Plainauthor{Cord Huchzermeyer, Iván Marín-Franch}
 
@@ -61,8 +63,6 @@ library("MASS")
 %% -- Introduction -------------------------------------------------------------
 
 \section[Introduction: Visual Fields in R]{Introduction: Visual Fields in \proglang{R}} \label{sec:intro}
-
-
 
 The Open Perimetry Initiative (OPI) \citep{IMF:Tur2012, IMF:Marin2022a} is an open standard for interfacing with visual field testing devices (perimeters). It defines a set of core functions that enable the construction of a wide range of visual field tests. As of October 2017, OPI is fully implemented on the Octopus 900 and partially supported on the Heidelberg Edge Perimeter, Kowa AP 7000, CrewT IMO, and Centervue Compass.
 
@@ -182,15 +182,6 @@ names(locmaps)
 @
 
 If the blind spot is outside the tested region (e.g., in the 10$^\circ$ pattern) or is skipped (e.g., in the Octopus G1), the \texttt{bs} field is set to \texttt{numeric(0)}.
-
-\subsection{Loading data}
-The visualField package contains some example data. This dataset contains the results of 42 visual field tests of one patient (id: sample1). The patient has primary open-angle glaucoma (type: pwg).
-
-<<>>=
-
-str(vfpwgSunyiu24d2[, 1:10])
-
-@
 
 \subsection{Loading data}
 
@@ -396,7 +387,10 @@ Statistical progression analysis may be performed via:
 \item \textbf{Pointwise linear regression} (PLR)
 \end{itemize}
 
-The \texttt{glr()} function estimates a regression model for global indices. For the example series, the patient loses \texttt{r round(abs(glr(getgl(example3))$sl), 2)} dB/year, with $p < \texttt{r format(ceiling(1000 * glr(getgl(example3))$pval) / 1000, nsmall = 3)}$.
+The \texttt{glr()} function estimates a regression model for global indices. For the example series, the patient loses \texttt{getgl(example3)} dB/year, with $p < \texttt{getgl(example3)}$.
+
+%\texttt{r round(abs(glr(getgl(example3))$sl), 2)}
+%\texttt{r format(ceiling(1000 * glr(getgl(example3))$pval) / 1000, nsmall = 3)}
 
 Pointwise linear regression is performed using \texttt{plr()}, resulting in one slope and $p$-value per location:
 
