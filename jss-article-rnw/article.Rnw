@@ -7,7 +7,6 @@
 
 %% another package (only for this demo article)
 \usepackage{framed}
-\usepackage{listings}
 
 %% new custom commands
 \newcommand{\class}[1]{`\code{#1}'}
@@ -61,7 +60,7 @@ library("visualFields")
 
 \begin{document}
 %%\SweaveOpts{concordance=TRUE}
-\lstset{breaklines=true, breakatwhitespace=true}
+%\lstset{breaklines=true, breakatwhitespace=true}
 
 
 %% -- Introduction -------------------------------------------------------------
@@ -105,35 +104,21 @@ The visualFields package was developed to analyze data from static perimetry, wh
 
 Static perimetry aims to estimate the hill of vision as accurately as possible within the constraints of clinical practice. The most common form is standard automated perimetry (SAP), which is performed inside a dome-shaped device (a Ganzfeld perimeter) to ensure a uniform distance between the eye and all stimulus locations. In contrast, campimetry uses a flat screen and may become more common with the increasing availability of computer screens and virtual reality devices for telemedicine.
 
-\subsection{How is perimetry performed?}
+For analyzing visual field data, the package provides the following functionality:
+\begin{itemize}
+  \item A format for representing visual field data
+  \item Functions for importing data from perimeters
+  \item Functions for reading and writing data in CSV format, and for handlings data
+  \item A format for representing the underlying spatial pattern ({data(locmaps)})
+  \item A format for representing age-corrected normal values ({data(normvals)}), including probabilities
+  \item Functions for calculating total deviation (TD), pattern deviation (PD), and global indices
+  \item Functions for calculating probabilities of TD and PD
+  \item A format for representing parameters for plotting the visual fields ({data(gpars)})
+  \item Functions for plotting visual fields, including longitudinal analyses of visual field series
+  \item Functions for calculating structural parameters pertinent to visual field testing (Jansonius maps, ganglion cell displacement)
+\end{itemize}
 
-In a typical SAP test, the patient is seated comfortably in front of a perimeter and places their head on a chin rest while looking into a white Ganzfeld dome. The room is dimly lit and quiet, and the patient is briefed by an experienced technician before the examination. During the test, the patient fixates on a central target (e.g., a dot, cross, or diamond), and presses a button whenever a light stimulus is perceived.
-
-Stimuli are presented briefly (typically 100–200 ms), minimizing the opportunity for eye movement. A response is only considered valid if it occurs within a defined time window following the stimulus. A computer presents stimuli at discrete locations in a grid, in randomized order. The stimulus intensity at each location is adjusted adaptively based on the patient' responses. Because of randomization, the patient cannot anticipate where the next stimulus will appear.
-
-The figure below shows the commonly used 24-2 grid of test locations. The gray ellipse represents the anatomical blind spot; the red points fall within this region and are expected to show no sensitivity.
-
-The grid, stimulus size, presentation duration, and intensity algorithm remain constant throughout the test and together define the perimetry program. It is important to note that results from different perimetry programs are not directly comparable.
-
-\subsection{False negatives and false positives}
-
-Deviations from the expected psychometric function may arise due to observer inattention or short-term threshold fluctuations. In diseases like glaucoma, short-term variability is often elevated in damaged regions of the visual field. Response quality is typically assessed by:
-
-\begin{description}
-  \item [False negatives (FNR)] Missed responses to stimuli that were previously seen.
-  \item [False positives (FPR)] Responses when no stimulus is presented
-  \item [Fixation losses] Responses to stimuli presented within the blind spot
-\end{description}
-
-These metrics help assess the reliability of a test.
-
-\subsection{Clinical applications of perimetry}
-
-In clinical settings, perimetry is used to detect and monitor visual field defects or scotomas, which can arise from damage anywhere along the visual pathway—from the ocular media (cornea, lens, vitreous), to the retina, optic nerve, or visual cortex.
-
-The spatial pattern of visual field loss often provides diagnostic clues. For instance, a right occipital lobe infarct can result in left homonymous hemianopia—complete loss of the left visual field in both eyes, with a sharp border along the vertical meridian. Conversely, glaucoma typically presents as arcuate defects, often beginning in the upper or lower hemifield, reflecting characteristic damage to the optic nerve head.
-
-Perimetry supports not only diagnosis but also evaluation of functional impact (e.g., fitness to drive) and disease progression monitoring.
+By default, the package is set up to handle Humphrey Field Analyzer 24-2 visual fields. It is recommended to use such data for exploring the package and data is provided by the package. However, other patterns and devices can be used. The package contains all necessary data for the HFA 10-2 pattern. The package is designed to be extensible, allowing users to add new patterns, devices, and normative datasets. 
 
 %% -- Methods ------------------------------------------------------------------
 
@@ -153,6 +138,66 @@ The latest development version can be installed from GitHub using:
 library(devtools)
 install_github("imarinfr/vf1/source")
 @
+
+\subsection{Visual field data}
+
+The package includes example data from a glaucoma patient (\code{vfpwgSunyiu24d2}), consisting of 42 visual field tests.
+
+The first ten columns contain metadata for each test, including reliability indices (false negatives, false positives, and fixation losses). The remaining columns contain the actual test values (sensitivities) at the locations defined in the \code{locmap}.
+
+<<>>=
+str(vfpwgSunyiu24d2[, 1:10], strict.width = "wrap")
+@
+
+The \code{date} variable is stored as a \code{POSIXct} object, which can be converted to a date format using the \code{as.Date()} function. Each row represents a monocular test. 
+
+The eye is labeled using Latin abbreviations: 
+
+\begin{description}
+\item [OD] oculus dexter -> right eye
+\item [OS] oculus sinister -> left eye
+\item [OU] oculus uterque -> both eyes
+\end{description}
+
+The \code{type} variable allows assignment of tests to different groups. 
+
+\subsubsection{Reliability indices}
+
+Deviations from the expected psychometric function may arise due to observer inattention or short-term threshold fluctuations. In diseases like glaucoma, short-term variability is often elevated in damaged regions of the visual field. Response quality is typically assessed by:
+
+\begin{description}
+  \item [False negatives (FNR)] Missed responses to stimuli that were previously seen.
+  \item [False positives (FPR)] Responses when no stimulus is presented
+  \item [Fixation losses] Responses to stimuli presented within the blind spot
+\end{description}
+
+These metrics help assess the reliability of a test.
+
+\subsubsection{Psychophysical data: sensitivities}
+
+Initial columns store patient information and reliability metrics. Actual test values (sensitivities) begin at the column number stored in the \code{locini} variable. The function \code{getvfcols()} returns the numbers of the columns that contain the actual test values at the locations \code{l1} to \code{ln}, where 1..n corresponds to the rows of \code{coords} in the \code{locmaps}.
+
+<<>>=
+getlocini()
+vfpwgSunyiu24d2[1, getvfcols()]
+@
+
+No columns should appear after these test values. Use \code{vffilter()} to select specific tests and \code{vfisvalid()} to verify data structure:
+
+<<>>=
+example1 <- vffilter(vfpwgSunyiu24d2, id == "sample1" & eye == "OD")[1, ]
+example1$newVariable <- "invalid"
+vfisvalid(example1)
+@
+
+The \code{vfread()} and \code{vfread()} functions can be used to read and write data in this format from a CSV file. However, these functions cannot be used to import native data from the perimeters. For this, the package includes functions to import data from the Octopus 900 and the Humphrey Field Analyzer.
+
+\begin{itemize}
+  \item \code{loadoctopus()} for Octopus 900 (Haag-Streit, Switzerland)
+  \item \code{loadhfaxml()}, \code{loadhfadicom()}, \code{loadhfaxmlbatch()}, \code{loadhfadicombatch()} for the Humphrey Field Analyzer (Zeiss)
+\end{itemize}
+
+Detailed examples for exporting data from the Octopus 900 and using \code{loadoctopus()} can be found here: \url{https://huchzi.github.io/vf1/loadOctopus.html}.
 
 \subsection{Grid patterns}
 
@@ -183,46 +228,6 @@ str(ten_two_locmap, strict.width = "wrap")
 @
 
 If the blind spot is outside the tested region (e.g., in the 10-2 pattern) or is skipped (e.g., in the Octopus G1), \code{bs} is set to \code{numeric(0)}.
-
-\subsection{Working with visual field data}
-
-The package includes example data from a glaucoma patient (\code{vfpwgSunyiu24d2}), consisting of 42 visual field tests.
-
-<<>>=
-str(vfpwgSunyiu24d2[, 1:10], strict.width = "wrap")
-@
-
-Each row represents a monocular test. The eye is labeled using Latin abbreviations: 
-
-\begin{description}
-\item [OD] oculus dexter -> right eye
-\item [OS] oculus sinister -> left eye
-\item [OU] oculus uterque -> both eyes
-\end{description}
-
-Initial columns store patient information and reliability metrics. Actual test values (sensitivities) begin at the column number stored in the \code{locini} variable. The function \code{getvfcols()} returns the numbers of the columns that contain the actual test values at the locations \code{l1} to \code{ln}, where 1..n corresponds to the rows of \code{coords} in the \code{locmaps}.
-
-<<>>=
-getlocini()
-vfpwgSunyiu24d2[1, getvfcols()]
-@
-
-No columns should appear after these test values. Use \code{vffilter()} to select specific tests and \code{vfisvalid()} to verify data structure:
-
-<<>>=
-example1 <- vffilter(vfpwgSunyiu24d2, id == "sample1" & eye == "OD")[1, ]
-example1$newVariable <- "invalid"
-vfisvalid(example1)
-@
-
-The \code{vfread()} and \code{vfread()} functions can be used to read and write data in this format from a CSV file. However, these functions cannot be used to import native data from the perimeters. For this, the package includes functions to import data from the Octopus 900 and the Humphrey Field Analyzer.
-
-\begin{itemize}
-  \item \code{loadoctopus()} for Octopus 900 (Haag-Streit, Switzerland)
-  \item \code{loadhfaxml()}, \code{loadhfadicom()}, \code{loadhfaxmlbatch()}, \code{loadhfadicombatch()} for the Humphrey Field Analyzer (Zeiss)
-\end{itemize}
-
-Detailed examples for exporting data from the Octopus 900 and using \code{loadoctopus()} can be found here: \url{https://huchzi.github.io/vf1/loadOctopus.html}.
 
 \subsection{Normative data}
 
@@ -282,11 +287,22 @@ nv$agem$model(age)
 
 Blind spot locations are returned as \code{NA}.
 
+\subsection{Graphical parameters}
+
+<<>>=
+data(gpars)
+names(gpars)
+str(gpars$p24d2, 
+    max.level = 1, strict.width = "wrap")
+@
+
+The \code{gpars} object contains graphical parameters for plotting visual fields. The default parameters are set for the 24-2 pattern, but can be customized for other patterns. It contains a list of the coords, which must be identical to the \code{locmap} used for the test. The \code{gpar} object also contains information on how to tesselate the borders in the plots, and color palettes for both the fields and their borders in the visual field plots. 
+
 %% -- Results ------------------------------------------------------------------
 
 \section{Results} \label{sec:results}
 
-\subsection{Metric for individual locations}
+\subsection{Metrics for individual locations}
 
 \subsubsection{Total deviation}
 
@@ -303,7 +319,7 @@ To calculate the total deviation, use the function from the \code{nv} object:
 
 <<>>=
 td <- gettd(example2)
-print(td[, getvfcols()[1:10]])
+td[, getvfcols()[1:10]]
 @
 
 \subsubsection{Pattern deviation}
@@ -319,7 +335,7 @@ Or automatically:
 
 <<>>=
 pd <- getpd(td)
-print(pd[, getvfcols()[1:10]])
+pd[, getvfcols()[1:10]]
 @
 
 \subsubsection{Probability values}
@@ -327,9 +343,9 @@ print(pd[, getvfcols()[1:10]])
 Even healthy eyes may show small deviations. To interpret these values, we calculate the probability that a deviation reflects pathology using empirical distributions from the normative data \citep{IMF:Hei1987a, IMF:Heijl1991}.
 
 <<>>=
-print(getnv()$lut$probs)
-print(gettdp(td)[, getvfcols()[1:10]])
-print(getpdp(pd)[, getvfcols()[1:10]])
+getnv()$lut$probs
+gettdp(td)[, getvfcols()[1:10]]
+getpdp(pd)[, getvfcols()[1:10]]
 @
 
 Probabilities less than 0.05 suggest the location is likely abnormal.
@@ -421,7 +437,7 @@ Pointwise linear regression is performed using \code{plr()}, resulting in one sl
 <<>>=
 prog1 <- plr(example3)
 str(prog1, max.level = 1, strict.width = "wrap")
-print(sum(prog1$pval[-getlocmap()$bs] < 0.05))
+sum(prog1$pval[-getlocmap()$bs] < 0.05)
 @
 
 To visualize these results:
@@ -442,17 +458,17 @@ str(prog2, max.level = 1, strict.width = "wrap")
 The null distribution and observed statistic:
 
 <<>>=
-print(prog2$csr)
-print(prog2$csrp)
-print(prog2$csl)
-print(prog2$cslp)
+summary(prog2)
+prog2[c("csr", "csrp", "csl", "cslp")]
 @
 
 Visualization:
 
-<<>>=
-hist(prog2$cstats$cslall, xlab = "S-values", xlim = c(0, 200))
-abline(v = prog2$csl, col = "red", lwd = 2)
+<<fig=TRUE>>=
+ggplot(data.frame(x = prog2$cstats$cslall), aes(x = x)) + 
+         geom_histogram() +
+         geom_vline(xintercept = prog2$csl, color = "red", size = 1) +
+         scale_x_continuous("S-values", breaks = seq(0, 200, 20))
 @
 
 \subsection{Automated reports}
@@ -634,26 +650,25 @@ The visualField's package would not have existed if it wasn't for the important 
 
 \begin{appendix}
 
-\section{More technical details} \label{app:technical}
+\section{Clinical aspects} \label{app:clinical}
 
-\begin{leftbar}
-Appendices can be included after the bibliography (with a page break). Each
-section within the appendix should have a proper section title (rather than
-just \emph{Appendix}).
+\subsection{How is perimetry performed?}
 
-For more technical style details, please check out JSS's style FAQ at
-\url{https://www.jstatsoft.org/pages/view/style#frequently-asked-questions}
-which includes the following topics:
-\begin{itemize}
-  \item Title vs.\ sentence case.
-  \item Graphics formatting.
-  \item Naming conventions.
-  \item Turning JSS manuscripts into \proglang{R} package vignettes.
-  \item Trouble shooting.
-  \item Many other potentially helpful details\dots
-\end{itemize}
-\end{leftbar}
+In a typical SAP test, the patient is seated comfortably in front of a perimeter and places their head on a chin rest while looking into a white Ganzfeld dome. The room is dimly lit and quiet, and the patient is briefed by an experienced technician before the examination. During the test, the patient fixates on a central target (e.g., a dot, cross, or diamond), and presses a button whenever a light stimulus is perceived.
 
+Stimuli are presented briefly (typically 100–200 ms), minimizing the opportunity for eye movement. A response is only considered valid if it occurs within a defined time window following the stimulus. A computer presents stimuli at discrete locations in a grid, in randomized order. The stimulus intensity at each location is adjusted adaptively based on the patient' responses. Because of randomization, the patient cannot anticipate where the next stimulus will appear.
+
+The figure below shows the commonly used 24-2 grid of test locations. The gray ellipse represents the anatomical blind spot; the red points fall within this region and are expected to show no sensitivity.
+
+The grid, stimulus size, presentation duration, and intensity algorithm remain constant throughout the test and together define the perimetry program. It is important to note that results from different perimetry programs are not directly comparable.
+
+\subsection{Clinical applications of perimetry}
+
+In clinical settings, perimetry is used to detect and monitor visual field defects or scotomas, which can arise from damage anywhere along the visual pathway—from the ocular media (cornea, lens, vitreous), to the retina, optic nerve, or visual cortex.
+
+The spatial pattern of visual field loss often provides diagnostic clues. For instance, a right occipital lobe infarct can result in left homonymous hemianopia—complete loss of the left visual field in both eyes, with a sharp border along the vertical meridian. Conversely, glaucoma typically presents as arcuate defects, often beginning in the upper or lower hemifield, reflecting characteristic damage to the optic nerve head.
+
+Perimetry supports not only diagnosis but also evaluation of functional impact (e.g., fitness to drive) and disease progression monitoring.
 
 \section[Using BibTeX]{Using \textsc{Bib}{\TeX}} \label{app:bibtex}
 
