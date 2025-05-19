@@ -93,13 +93,13 @@ The most straightforward method for estimating this threshold is the method of c
 
 To improve efficiency, adaptive algorithms have been developed to reduce the number of stimulus presentations with minimal compromise in accuracy. A commonly used example is the staircase algorithm, in which the stimulus intensity decreases after a "seen" response and increases after a "not seen" response. The step size is halved after each reversal (i.e., a change in response direction). More sophisticated algorithms balance precision and test duration, often incorporating information from adjacent locations in the visual field. A notable example is the Swedish Interactive Threshold Algorithm (SITA) used in the Humphrey Field Analyzer.
 
-At the conclusion of the test, the inverse of the contrast threshold, $\Delta L_{threshold}$, is recorded at each location using a logarithmic decibel (dB) scale. This scale is defined as the attenuation from the maximum possible stimulus contrast, $\Delta L_{max}$:
+At the conclusion of the test, the perimetric sensitivity is recorded in a logarithmic decibel (dB) scale based on the luminance of the stimulus at threshold ($L_{threshold}$). In perimetry, luminance is usually reported in apostilbs rather than $cd/m^2$, where $1 asb = \frac{1}{\pi} cd/m^2$. This scale is defined as the attenuation from the maximum possible stimulus contrast, $L_{max}$:
 
 \begin{equation}
-dB = -10\ \rm log \left (\frac{\Delta L_{\rm thr}}{\Delta L_{\rm max}} \right)\ .
+dB = 10\ \rm log \left (\frac{L_{\rm max}}{L_{\rm threshold}} \right)\ .
 \end{equation}
 
-For common devices such as the Humphrey Field Analyzer and the Octopus 900, the maximum luminance differential is $\Delta L_{max} = \frac{10{,}000\ apostilbs}{\pi} \approx 3183.1\ cd,{m}^{-2}$.
+$L_{max}$ may differ between parameter types, and the Humphrey Field Analyzer uses 10,000 asb, whereas recent Octopus 900 perimeters commonly use 4000 asb.
 
 The visualFields package was developed to analyze data from static perimetry, where thresholds are measured at fixed, discrete locations in the visual field. Kinetic perimetry, in which a stimulus of constant luminance is moved across the field to identify isosensitivity contours, is outside the scope of this package.
 
