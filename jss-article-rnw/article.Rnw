@@ -22,14 +22,13 @@ library("MASS")
 library("plotrix")
 library("ggplot2")
 library("utils")
-library("visualFields")
 @
 
 
 %% -- Article metainformation (author, title, ...) -----------------------------
 
 \author{Cord Huchzermeyer~\orcidlink{0000-0002-0408-8981}\\Department of Ophthalmology\\University Hospital Erlangen
-   \And Iván Marín-Franch\\Computational Optometry}
+   \And Iván Marín-Franch~\orcidlink{0000-0003-0552-8456}\\Computational Optometry}
 \Plainauthor{Cord Huchzermeyer, Iván Marín-Franch}
 
 \title{visualFields 1.0.7: Tools for Analyzing Visual Fields in \proglang{R}}
@@ -53,9 +52,12 @@ library("visualFields")
   E-mail: \email{c.huchzermeyer@posteo.de}\\
   \\
   Iván Marín-Franch\\
-  Computational Optometry\\
-  E-mail: \email{ivan@example.com}\\
-  URL: \url{https://www.computationaloptometry.com/}
+  Computational Optometry, Atarfe, Spain\\
+  E-mail: \email{imarinfr@optocom.es}\\
+  URL: \url{https://www.optocom.es/}.\\
+  Envision Health Technologies, Brooklyn NY, USA.\\
+  \emph{and}\\
+  Ophthalmology.World, Madrid, Spain.
 }
 
 \begin{document}
@@ -74,7 +76,7 @@ The \pkg{visualFields} package, developed as part of the OPI ecosystem, provides
 
 The visual field refers to the entire area that can be seen at a given moment, encompassing both central and peripheral vision. It is typically measured in degrees of visual angle, with the fixation point defined as the origin at $x = 0^\circ$ and $y = 0^\circ$. Locations temporal and superior to fixation are assigned positive angles, whereas nasal and inferior locations are assigned negative angles.
 
-In healthy vision, most visual functions, particularly light sensitivity, decline with increasing eccentricity—i.e., distance from the center of fixation. This decline in differential light sensitivity gives rise to a three-dimensional structure known as the hill of vision, also referred to as Traquair’s island of vision \citep{IMF:Traquair1938}. Figure~\ref{fig:hill} below shows a classic rendering of the hill of vision by Aulhorn and Harms \citep{IMF:Aul1967}.
+In healthy vision, most visual functions, particularly light sensitivity, decline with increasing eccentricity—i.e., distance from the center of fixation. This decline in differential light sensitivity gives rise to a three-dimensional [IMF]surface[IMF] known as the hill of vision, also referred to as Traquair’s island of vision \citep{IMF:Traquair1938}. Figure~\ref{fig:hill} below shows a classic rendering of the hill of vision by Aulhorn and Harms \citep{IMF:Aul1967}.
 
 \begin{figure}[t!]
 \centering
@@ -84,51 +86,53 @@ In healthy vision, most visual functions, particularly light sensitivity, declin
 
 \subsection{What is perimetry?}
 
-\emph{Perimetry} (visual field testing) uses psychophysical methods to quantify the visual field by measuring a patient's sensitivity to light differences at various locations within the field. Psychophysical tests allow for the scientific measurement of the relationship between physical stimulus strength and subjective perception. This is achieved by systematically varying the stimulus strength across discrete trials based on the observer's responses. The observer is typically restricted to a limited set of responses, and the stimuli are varied according to a predefined algorithm.
+\emph{Perimetry} (visual field testing) uses psychophysical methods to quantify the visual field by measuring a patient's sensitivity to light differences at various locations within the field. Psychophysical tests allow for the [IMF]clinical and[IMF] scientific measurement of the relationship between physical stimulus strength[IMF], intensity of light or more precisely stimulus contrast for a constant background[IMF] and subjective perception. This is achieved by systematically varying the stimulus strength across discrete trials based on the observer's responses. [IMF]In clinical settings[IMF], the observer is restricted to a limited set of [IMF]trials[IMF], and the stimuli are varied according to a predefined algorithm.
 
-In visual field testing, the observer responds by either pressing or not pressing a button within a fixed time window following the presentation of a light increment in the visual field (a yes/no response). The relationship between stimulus strength and response probability is modeled by a \emph{psychometric function}, which characterizes the likelihood of a "yes" response as a function of stimulus strength \citep{CH:knoblauch_modeling_2012}. These models yield an estimate of the threshold, defined as the stimulus strength at which the observer detects the stimulus with a probability of 50\%.
+In visual field testing, the observer responds by either pressing or not pressing a button within a fixed time window following the presentation of [IMF]an increase in intensity or contrast[IMF] in the visual field (a yes/no response). The relationship between stimulus strength and response probability is modeled by a \emph{psychometric function}, which characterizes the likelihood of a "yes" response as a function of stimulus strength \citep{CH:knoblauch_modeling_2012}. These models yield an estimate of the threshold, defined as the stimulus strength at which the observer detects the stimulus with a probability of 50\%.
 
-The most straightforward method for estimating this threshold is the method of constant stimuli, in which stimuli are presented multiple times at several discrete, fixed intensities around the anticipated threshold. This approach yields an accurate estimate of the psychometric function, which is typically modeled using a cumulative distribution function (CDF), such as the Gaussian CDF. However, this method is inefficient and requires a large number of trials, since stimulus levels far from the threshold provide little information. Long test durations negatively affect attention, thereby reducing both the accuracy and precision of the threshold estimates.
+\subsection{How do we quantify sensitivity in perimetry?}
 
-To improve efficiency, adaptive algorithms have been developed to reduce the number of stimulus presentations with minimal compromise in accuracy. A commonly used example is the staircase algorithm, in which the stimulus intensity decreases after a "seen" response and increases after a "not seen" response. The step size is halved after each reversal (i.e., a change in response direction). More sophisticated algorithms balance precision and test duration, often incorporating information from adjacent locations in the visual field. A notable example is the \emph{Swedish Interactive Threshold Algorithm (SITA)} used in the Humphrey Field Analyzer.
+[IMF] I HAVE EDITED THIS AND THE NEXT PARAGRAPHS TO AVOID GIVING ASSESSMENTS ON THE DIFFERENT METHODS, AS THIS IS A COMPLEX ISSUE:
+* I WOULD NOT SAY PSYCHOMETRIC FUNCTIONS ARE INEFFICIENT HERE AS IT DEPENDS ON WHAT YOU ARE AFTER AND LEAVE THE EMPHASIS ON TIME AND HOW THIS IS CLINICALLY IMPRACTICAL
+* EFFICIENCY DEPENDS ON WHAT WE ARE AFTER, FOR THRESHOLD IS UNNECESSARY, BUT FOR FP AND FN AND EVEN SLOPE OF THE PSYCHOMETRIC FUNCTION, THEY ARE IMPORTANT
+* I HAVE ALSO ADDED A PARAGRAPH ON STAIRCASE AND FULL THRESHOLD
+The traditional method for estimating this threshold is the method of constant stimuli, in which stimuli are presented multiple times at several discrete, fixed intensities around the anticipated threshold. This approach yields an estimate of the psychometric function, which is typically modeled using a cumulative distribution function (CDF), most commonly the Gaussian or Weibull CDF. However, this method requires a large number of trials to provide accurate estimations of the parameters of the psychometric function, intensity threshold, slope at threshold, and false positive and negative rates. Long test duration negatively affect attention and make any test impractical for clinical use.
 
-At the conclusion of the test, the perimetric sensitivity is recorded in a logarithmic decibel (dB) scale based on the luminance of the stimulus at threshold ($L_{threshold}$). In perimetry, luminance is usually reported in apostilbs rather than $cd/m^2$, where $1 asb = \frac{1}{\pi} cd/m^2$. This scale is defined as the attenuation from the maximum possible stimulus contrast, $L_{max}$:
+Two classic alternative approaches that does not require estimates of the full psychometric function and instead aims at estimating the threshold stimulus intensity at which half the presentations are seen are the staircase and the full threshold (consisting on two staircase algorithms ran one after the other). Staircase algorithms start by presenting a stimulus at an initial guess. If the stimulus is seen, then intensity is decreased by steps of a predetermined value and otherwise it is increased. After the first reversal (transition from seen to not seen or viceversa), the amount at which the stimulus intensity changes is half the original step size. At the second reversal the algorithm stops. The estimated threshold is typically obtained by averaging the intensities of the last two presentations. Staircase and its modified, full threshold version, which was the standard when static automated perimetry was first introduced, see e.g., \citep{IMF:Heijl1985}, is still too long and impractical for clinical use.
+
+For this reason, psychophysical Bayesian algorithms \citep{IMF:Taylor1967,IMF:Kin1994} to reduce the number of stimulus presentations were adapted to balance precision and test duration. Some algorithms, such as the \emph{Swedish Interactive Threshold Algorithm} (SITA) used in the Humphrey Field Analyzer, also incorporate information from adjacent locations in the visual field.[IMF]
+
+[IMF]In perimetry, luminance is usually reported in apostilbs rather than ${\rm cd/m^2}$, where $\pi {\rm apostilbs} = 1 {\rm cd/m^2}$. The background is nominally, $10 {\rm cd/m^2}$ or 31.4 apostilbs, and the intensity thresholds, $\Delta L_{\rm thr}$ is the stimulus luminance at threshold minus $10 {\rm cd/m^2}$. The maximum intensity threshold $\Delta L_{\rm max}$ can differ among perimeters. For the Humphrey Field Analyzer (HFA) the maximum is 10{,}000\,asb, whereas recent Octopus 900 perimeters commonly use 4000\,asb \citep{CH:racette_visual_nodate}. Regardless of the units used and the maximum possible luminance, at the conclusion of the test, the intensity threshold at each test location is converted into sensitivity, the inverse of intensity threshold, and expressed on a logarithmic scale, the decibel (dB), thus,
 
 \begin{equation}
-dB = 10\ \rm log \left (\frac{L_{\rm max}}{L_{\rm threshold}} \right)\ .
+dB = 10\ \rm log \left (\frac{\Delta L_{\rm max}}{\Delta L_{\rm thr}} \right)\ .
 \end{equation}
+%
+Since the maximum luminance differential is $\Delta L_{\rm max}$ the fraction is $\ge 1$ and therefore dB $\ge 0$, with 0 being the maximum stimulus possible, and therefore the minimum sensitivity that can be measured by the perimeter. dB scales are normally limited to 40 dB which corresponds to 1 asb for the HFA and 0.4 asb for the Octopus 900.
+[IMF]
 
-$L_{max}$ may differ between parameter types, and the Humphrey Field Analyzer uses 10{,}000\,asb, whereas recent Octopus 900 perimeters commonly use 4000\,asb \citep{CH:racette_visual_nodate}.
+Static automated perimetry (SAP) aims to estimate the hill of vision as accurately as possible within the constraints of clinical practice. [IMF COMMENT: The S in SAP is static, not standard. It was HFA's smart idea to replace the S to mean "standard". I WOULD DELETE THIS: The most common form is standard automated perimetry (SAP)] It is performed inside a dome-shaped device (a Ganzfeld perimeter) to ensure a uniform distance between the eye and all stimulus locations. [IMF COMMENT: CAMPIMETRY AND PERIMETRY ARE THE SAME? DELETE THE FOLLOWING? In contrast, campimetry] [IMF]With the advent of new technology, new perimeters are being developed on flat screens on computers, tables, phones and, more notably, virtual-reality systems. The are becoming more[IMF] common in particular for use in telemedicine.
 
-The visualFields package was developed to analyze data from static perimetry, where thresholds are measured at fixed, discrete locations in the visual field. Kinetic perimetry, in which a stimulus of constant luminance is moved across the field to identify isosensitivity contours, is outside the scope of this package.
+\subsection{Aims of the visualFields package}
+[IMF COMMENT: I CREATED THIS AND THE PREVIOUS NEW SECTIONS FOR ORGANIZATION PURPOSES. I MOVED THE SENTENCE REGARDING KINETIC PERIMETRY TO THE END OF THIS SECTION]
 
-Static perimetry aims to estimate the hill of vision as accurately as possible within the constraints of clinical practice. The most common form is standard automated perimetry (SAP), which is performed inside a dome-shaped device (a Ganzfeld perimeter) to ensure a uniform distance between the eye and all stimulus locations. In contrast, campimetry uses a flat screen and may become more common with the increasing availability of computer screens and virtual reality devices for telemedicine.
-
-For analyzing visual field data, the package provides the following functionality:
+[IMF]The \pkg{visualFields} package is an aid for the standardization of visual field data analysys from any device running SAP. It[IMF] provides the following functionality:
 \begin{itemize}
-  \item A format for representing visual field data
+  \item Standardized formats for representing visual field data
   \item Functions for importing data from perimeters
-  \item Functions for reading and writing data in CSV format, and for handlings data
-  \item A format for representing the underlying spatial pattern ({data(locmaps)})
-  \item A format for representing age-corrected normal values ({data(normvals)}), including probabilities
-  \item Functions for calculating total deviation (TD), pattern deviation (PD), and global indices
+  \item Functions for reading and writing data in CSV format, and for handling data
+  \item A standardized format for representing the underlying spatial pattern ({\code(locmaps)})
+  \item A standardized format for representing age-corrected normal values ({\code(normvals)}), including probabilities
+  \item Functions for calculating total deviation (TD), pattern deviation (PD), and global indices such as mean deviation (MD) and pattern standard deviation (PSD)
   \item Functions for calculating probabilities of TD and PD
-  \item A format for representing parameters for plotting the visual fields ({data(gpars)})
-  \item Functions for plotting visual fields, including longitudinal analyses of visual field series
-  \item Functions for calculating structural parameters pertinent to visual field testing (Jansonius maps, ganglion cell displacement)
+  \item A standardized format for the visualization of plotting the visual fields sensitivity, TD, and PD maps ({data(gpars)})
+  \item Functions for running longitudinal analyses in series of visual fields
+  \item Functions to aid with structure-function correspondence (such as the Jansonius map \citep{IMF:Jan2012})
 \end{itemize}
 
-By default, the package is set up to handle Humphrey Field Analyzer 24-2 visual fields. It is recommended to use such data for exploring the package and data is provided by the package. However, other patterns and devices can be used. The package also contains all necessary data for the HFA 10-2 pattern. However, the package is designed to be extensible, allowing users to add new patterns, devices, and normative datasets. 
+By default, the package is set up to handle Humphrey Field Analyzer 24-2 visual fields. It is recommended to use such data for exploring the package and data is provided within the package for this purpose. However, other patterns and devices can be used. The package also contains all necessary data for the HFA 10-2 pattern. However, the package is designed to be extensible, allowing users to add new patterns, devices, and normative datasets. 
 
-%% -- Methods ------------------------------------------------------------------
-
-\section{Humphrey Field Analyser 24-2 pattern} \label{sec:methods}
-
-In this section, we will show how to install and load the package, and how the data supplied by the package can be analyzed with the default environment settings. In the following sections, we will show how to plot the data, perform longitudinal and cross-sectional analyses, how to import data from perimeters, and how to set up the environmnent for these data.
-
-\subsection{Installation}
-
-The \pkg{visualFields} package is available from CRAN under the Apache 2.0 license and can be installed with:
+The \pkg{visualFields} package was developed to analyze data from SAP. Manual kinetic perimetry, in which a stimulus of constant luminance is moved across the field to identify isosensitivity contours, is outside the scope of this package. It is available from CRAN under the Apache 2.0 license and can be installed with:
 
 <<eval=FALSE>>=
 install.packages("visualFields")
@@ -137,55 +141,118 @@ install.packages("visualFields")
 The latest development version can be installed from GitHub using:
 
 <<eval=FALSE>>=
+install.packages("devtools")
 library(devtools)
 install_github("imarinfr/vf1/source")
 @
 
+To invoke \pkg{visualFields} in R, run
+<<>>=
+library("visualFields")
+@
+
+[IMF]In Section \ref{sec:methods}, we will show how the data supplied by the package can be analyzed with the default environment settings. In Section \ref{sec:results}, we will show how to plot the data, perform longitudinal and cross-sectional analyses, how to import data from the Humphrey perimeter and how to set up the environment for these data. Section \ref{sec:others} outlines support for non-conventional settings and other perimeters. Final remarks are shown in Section \ref{sec:summary}.[IMF]
+
+%% -- Methods ------------------------------------------------------------------
+
+\section{Humphrey Field Analyser 24-2 pattern} \label{sec:methods}
+
 \subsection{Visual field data}
 
-The most important data are the perimetry results. However, the environment needs to be set up correctly for the corresponding type of perimetry. Here, we start with data from a Humphrey Field Analyser (HFA) with the 24-2 pattern that is supplied by the package (\code{data(vfpwgSunyiu24d2)}), and demonstrate how the data is structured and what environment settings are used. The default environment settings are aimed at the HFA 24-2, and they can always be reset with \code{setdefaults()}. The data is from a glaucoma patient (\code{vfpwgSunyiu24d2}) and consists of 42 consecutive visual field tests.
+The most important data are the perimetry results. However, the environment needs to be set up correctly for the corresponding type of perimetry. Here, we start with data from a Humphrey Field Analyzer (HFA) with the 24-2 pattern that is supplied by the package, and demonstrate how the data is structured and what environment settings are used. The default environment settings are aimed at the HFA 24-2, and they can always be reset with 
 
 <<>>=
-data(vfpwgSunyiu24d2)
+setdefaults()
+@
+
+The data is from a glaucoma patient (\code{vfpwgSunyiu24d2}) and consists of 42 consecutive visual field tests. The first ten columns contain metadata for each test:
+<<>>=
 str(vfpwgSunyiu24d2[, 1:10], strict.width = "wrap")
 @
 
-The first ten columns contain metadata for each test, including reliability indices. The remaining columns contain the actual test values (sensitivities) at the locations defined in the \code{locmap}. The \code{date} variable is stored as a \code{POSIXct} object, which can be converted to a date format using the \code{as.Date()} function. Each row represents a monocular test. The \code{type} variable allows assignment of tests to different groups. The eye is labeled using Latin abbreviations: 
-
+These include reliability indices false-positive rates (\code{fpr}), false-negative rates (\code{fnr}), and fixation losses (\code{fl}). The \code{date} variable is stored as a \code{POSIXct} object, which can be converted to a date format using the \code{as.Date()} function. Each row represents a perimetry test for a patient with a specific ID and left or right eye (\code{eye}), on a test \code{date} and at a test \code{time}. The \code{eye} is labeled using Latin abbreviations: 
 \begin{description}
-\item [OD: oculus dexter] right eye
-\item [OS: oculus sinister] left eye
-\item [OU: oculus uterque] both eyes
+\item [OD: oculus dexter] right eye,
+\item [OS: oculus sinister] left eye, and
+\item [OU: oculus uterque] both eyes.
 \end{description}
+The column \code{type} allows assignment of tests to different groups. The column \code{duration} contains the total amount of time that the patient took to complete the perimetry test. The column \code{age} is important to run statistical analyses on the visual field results, in particular, for the comparisons with age-corrected mean reference values.
 
-\subsubsection{Reliability indices}
+The remaining columns contain the actual test values (sensitivities) at the locations defined in an internal variable defining the location map:
+<<>>=
+head(getlocmap()$coord)
+@
 
-Deviations from the expected psychometric function may arise due to observer inattention or short-term threshold fluctuations. In diseases like glaucoma, short-term variability is often elevated in damaged regions of the visual field. Response quality is typically assessed by following metrics and these help to assess the reliability of a test. :
-
-\begin{description}
-  \item [False negatives (FNR)] Missed responses to stimuli that were previously seen.
-  \item [False positives (FPR)] Responses when no stimulus is presented when the patients expects a presentation from the rhythm of the exam
-  \item [Fixation losses] Responses to stimuli presented within the blind spot
-\end{description}
-
-\subsubsection{Local sensitivities}
-
-Actual test values (sensitivities) begin at the column number stored in the \code{locini} variable of the environment. The function \code{getvfcols()} returns the numbers of the columns that contain the actual test values at the locations $l_{1}$ to $l_{n}$, where n corresponds to the number of locations tests (n = 54 for the 24-2 pattern).
-
+Actual test values (pointwise sensitivities in dB) begin at the column number stored in an internal variable, \code{locini} variable of the environment that can be retrieved with the function:
 <<>>=
 getlocini()
+@
+
+The function \code{getvfcols()} returns the numbers of the columns that contain the actual test values at the locations $l_{1}$ to $l_{n}$, where $n$ corresponds to the number of locations tests ($n$ = 54 for the 24-2 pattern). No other columns should appear after these test values.
+
+<<>>=
 vfpwgSunyiu24d2[1, getvfcols()]
 @
 
-No columns should appear after these test values. Use \code{vffilter()} to select specific tests and \code{vfisvalid()} to verify data structure:
-
-<<>>=
-example1 <- vffilter(vfpwgSunyiu24d2, id == "sample1" & eye == "OD")[1, ]
-example1$newVariable <- "invalid"
-vfisvalid(example1) 
+Below is a list of thet datasets included in \pck{visualFields}:
+<<eval=FALSE>>=
+vfctrSunyiu24d2 # Control subjects for HFA 24-2 SITA standard
+vfctrSunyiu10d2 # Control subjects for HFA 10-2 SITA standard
+vfctrIowaPC26 # Control subjects for an irregular grid in
+              # the central 30 degrees using Octopus OPI ZEST
+vfctrIowaPeri # Control subjects for an irregular grid in
+              # the periphery from 30 to 80 degrees using Octopus OPI ZEST
+vfpwgSunyiu24d2 # Series of HFA 10-2 SITA standard tests for the two eyes
+                # of a patient followed up over time
+vfpwgRetest24d2 # 30 patients tested each 12 times with the HFA 10-2 SITA standard
 @
 
-Here, the visual field data is not value, because an illegal column was added. The \code{vfread()} and \code{vfread()} functions can be used to read and write data in this format from a CSV file, but they cannot be used to import native data from the perimeters. 
+\subsubsection{Reliability indices}
+[IMF COMMENT: I think this was too bold, so I edited it to tone it down]
+[IMF]Given the psychophysical nature of perimetry as a clinical test, attention, fatigue, and other psychological factors can affect the estimated sensitivities. For this reason, they include some catch and fixation trials to assess the quality of the test undertaken. Response quality, and the validity of the data collected by the test, is typically assessed by the following reliability indices:[IMF]
+
+\begin{description}
+  \item [False positives (\code{fpr})] Responses when no stimulus is presented when the patients expects a presentation from the rhythm of the exam
+  \item [False negatives (\code{fnr})] Missed responses to stimuli that were previously seen.
+  \item [Fixation losses (\code{fl})] Responses to stimuli presented within the blind spot
+\end{description}
+
+\subsubsection{Basic operations with visual-field data}
+
+\code{vffilter()} filter specific tests by a logical criterion
+<<>>=
+example1 <- vffilter(vfpwgSunyiu24d2, id == "sample1" & eye == "OD")
+head(example1[,1:4])
+@
+
+\code{vfselect()} selects a number of test from the end or the start of series of visual field data for each ID and eye
+<<>>=
+example1 <- vfselect(vfpwgSunyiu24d2, n = 3)
+head(example1[,1:4])
+@
+
+\code{vfjoin()} joins two data frames with vf data
+<<eval=FALSE>>=
+vf <- vfjoin(vfctrSunyiu24d2, vfpwgSunyiu24d2)
+@
+
+\code{vfaggregate()} aggregates the data by either ID + eye, or ID + eye + date:
+<<>>=
+vfaggregate(example1, by = "eye", median)
+@
+
+\code{vfmean()} is a shortcut to \code{vfaggregate()} with \code{fun = mean}
+
+\code{vfsort()} sorts the data by ID, eye, date, and time.
+
+\code{vfisvalid()} verifies the data structure:
+<<>>=
+example1$newVariable <- "invalid"
+vfisvalid(example1)
+@
+Here, the visual field data is not value, because an illegal column was added.
+
+The \code{vfread()} and \code{vfwrite()} functions can be used to read and write data in this format from a CSV file, but they cannot be used to import native data from the perimeters. 
 
 The following functions can be used to import data from perimeters.
 
@@ -194,143 +261,139 @@ The following functions can be used to import data from perimeters.
   \item \code{loadoctopus()} for Octopus 900 (Haag-Streit, Köniz, Switzerland)
 \end{itemize}
 
-\subsection{Grid patterns}
-
-Test locations are defined by location maps (\code{locmaps}), which specify the spatial coordinates of stimulus presentation points in degrees of visual angle. These maps reflect the layout used by visual field testing devices. When analyzing data, the correct \code{locmap} must be specified.
+\subsection{Location maps}[IMF COMMENT: they should have been called grid or locgrid, but I was too young back then, so now we are stuck with location maps instead of grids]
+Test locations are defined by location maps (\code{locmaps}), which specify the spatial coordinates of stimulus presentation points in degrees of visual angle. These maps reflect the layout used by visual field testing devices. When analyzing data, the correct location map must be specified.
 
 <<>>=
-data(locmpas)
-names(locmaps)
+data.frame(name = sapply(locmaps, function(lm) return(lm$name)))
 @
-
 By default, the \code{24-2} pattern is used, consisting of 54 regularly spaced locations across the central visual field.
 
 <<>>=
-default_locmap <- getlocmap()
-str(default_locmap, strict.width = "wrap")
+str(getlocmap(), strict.width = "wrap")
 @
 
-Each \code{locmap} contains:
+This structure contains:
 \begin{itemize}
   \item A coordinate table with $x$- and $y$-positions (in degrees),
   \item A vector \code{bs} indicating locations corresponding to the physiological blind spot.
 \end{itemize}
 
-If the blind spot is outside the tested region (e.g., in the 10-2 pattern) or is skipped (e.g., in the Octopus G1), \code{bs} is set to \code{numeric(0)}.
+If the blind spot is outside the tested region (e.g., in the 10-2 pattern) or is skipped (e.g., in the Octopus G1), \code{bs} is set to \code{numeric(0)}. All these maps are on right-eye format, to obtain the coordinates for a left eye, just change the sign to the x coordinates.
+
+The \code{locread} and \code{locwrite} saves or loads \code{locmaps}. They are useful for using custom locations.
 
 \subsection{Normative data}
-
-Sensitivity is measured in decibels (dB), derived from contrast thresholds. Sensitivity varies:
+Pointwise sensitivities vary with:
 \begin{itemize}
   \item Intra-individually (test-retest variability),
   \item Inter-individually (e.g., with age),
   \item By eccentricity.
 \end{itemize}
 
-To detect abnormal points, we compare observed sensitivities with an age-corrected mean normal field. These comparisons require a \emph{normative dataset} and location-wise \emph{age-linear models}.
+To detect abnormal points, we compare observed sensitivities with an age-corrected mean normal field and reference values. These comparisons require a \emph{normative dataset} with point-wise \emph{age-linear models and percentiles} to compute the likelihood of a location being abnormally low.
 
 The difference between observed and normal values is the \emph{total deviation (TD)}. In this package, negative values indicate lower-than-normal sensitivity, following the Humphrey Field Analyzer convention. For perimeters that reverse this definition (e.g., Octopus), users must invert the sign.
 
-To reveal focal defects masked by generalized depression (e.g., due to cataract), a \emph{pattern deviation (PD)} is computed by subtracting a general height (GH) estimate from the TD. For 24-2, GH is defined as the 7th highest TD value.
+To reveal focal defects masked by generalized depression (e.g., due to cataract), a \emph{pattern deviation (PD)} is computed by subtracting a general height (GH) estimate from the TD. For 24-2, GH is defined as the $7^{\rm th}$ greatest TD value.
 
 The package includes three datasets with visual fields from normal observers:
 
 \begin{itemize}
-  \item SUNY-IU dataset (\code{vfctrsunyiu_24d2}) for 24-2 with Goldmann size III \citep{IMF:Mar2013b}
-  \item Iowa PC26 (\code{vfctriowa_PC26}) and Peri (\code{vfctrsunyiu_10d2}) datasets for Goldmann size V \citep{IMF:Marin2018c}
+  \item SUNY-IU dataset (\code{vfctrSunyiu24d2}) for 24-2 with Goldmann size III \citep{IMF:Mar2013b}
+  \item Iowa PC26 (\code{vfctrIowaPC26}) and Peri (\code{vfctrIowaPeri}) datasets for Goldmann size V \citep{IMF:Marin2018c}
 \end{itemize}
 
-<<>>=
-data(fvctrSunyiu24d2)
-str(
-  vfctrSunyiu24d2[, 1:getlocini()+5], 
-  strict.width = "wrap")
-@
-
 The normal values derived from these data can be found in \code{normvals}.
-
 <<>>=
-data(normvals)
-str(
-  normvals$sunyiu_24d2, 
-  max.level = 1, strict.width = "wrap")
+str(normvals$sunyiu_24d2, max.level = 1, strict.width = "wrap")
 @
 
-The normative object \code{nv} includes coefficients of age-linear models (\code{nv$agem$coeff}).:
-
+The object with the normative values includes coefficients of age-linear models.
 <<>>=
 nv <- getnv()
 head(nv$agem$coeff, 5)
 @
 
-It also contains a function that calculates normal sensitivity for a given age (\code{nv$agem$model()}), Thus, the expected field at age 50 is:
-
+It also contains a function that calculates normal sensitivity for a given age. Thus, the expected field at age 50 as recorded for the 24-2 SITA Standard by the HFA and based on the normative dataset \code{vfctrSunyiu24d2} can be computed as:
 <<>>=
-age <- 50
+age <- 50 # Change age to see how mean-normal sensitivities change
 nv$agem$model(age)
 @
 
-Blind spot locations are returned as \code{NA}.
+Blind spot locations are returned as \code{NA}, as they should be removed from analysis.
+
+The normative values also contains lookup tables for calculation of percentiles, and functions to compute TD, PD, and global indices, and their associated probability levels.
+
+The objects \code{tdfun}, \code{pdfun}, and \code{glfun} are functions to compute the TD, PD, and global indices. And \code{tdpfun}, \code{pdpfun}, and \code{glpfun} obtain the corresponding probability levels. The function \code{ghfun} computes the GH from TD values. These functions are not to be called directly. Instead, use the following functions:
+\begin{itemize}
+  \item \code{gettd}, \code{gettdp} for TD values and probability levels,
+  \item \code{getpd}, \code{getpdp} for PD values and probability levels,
+  \item \code{getgl}, \code{getglp} for global indices and probability levels, and
+  \item \code{getgh} for the calculation of GH
+\end{itemize}
+
+The use of these functions is illustrated in Section \ref{sec:results}.
 
 \subsection{Graphical parameters}
+The \code{gpars} object contains graphical parameters for plotting visual fields. The default parameters are set for the 24-2 pattern, but can be customized for other patterns. It contains a list of the coords, which must have as many entries as the location map used for the test, but may have different x and y positions for visualization purposes. The graphical parameter object also contains information on how to tessellate the borders in the plots, and color palettes for both the fields and their borders in the visual field plots. 
 
+You can select the current graphical parameters with
 <<>>=
-data(gpars)
-names(gpars)
-str(gpars$p24d2, 
-    max.level = 1, strict.width = "wrap")
+gpar <- getgpar()
+str(gpar, max.level = 1, strict.width = "wrap")
 @
 
-The \code{gpars} object contains graphical parameters for plotting visual fields. The default parameters are set for the 24-2 pattern, but can be customized for other patterns. It contains a list of the coords, which must be identical to the \code{locmap} used for the test. The \code{gpar} object also contains information on how to tesselate the borders in the plots, and color palettes for both the fields and their borders in the visual field plots. 
+There are functions to help generate graphical parameters from the coordinates of a location map:
+\begin{itemize}
+  \item \code{vfgpar} generates default graphical parameters,
+  \item \code{vftess} generates a default structure to handle the visual field tessellation,
+  \item \code{vfcolscheme} helps generate color schemes for detection analysis, and
+  \item \code{vfprogcolscheme} helps generate color schemes for progression analysis
+\end{itemize}
 
 %% -- Results ------------------------------------------------------------------
-
 \section{Analyzing visual fields} \label{sec:results}
+This section describes how to use the visual field package to analyze pointwise locations, calculate global parameters that summarize the visual field, perform longitudinal analyses, and plot the pointwise results. 
 
-After you have familiarized yourself with the structure of the default data, you will now learn how to use the visual field package to analyze single locations, how to calculate global parameters that summarize the visual field, how plot fields, how to perform longitudinal analyses, and how to do structure-function correlations. Then, in the following section, we will show how to use the package with different patterns and data from different perimeters.
-
-\subsection{Metrics for individual locations}
-
-\subsubsection{Total deviation}
-
+\subsection{Pointwise results}
+\subsubsection{Total and pattern deviation}
 Total deviation is the difference between observed and expected sensitivity. Here, it is shown how it is calculated.
 
 <<>>=
-example2 <- vffilter(vfpwgRetest24d2, id == "1", eye == "OD")[1, ]
+example2 <- vffilter(vfpwgRetest24d2, id == "1", eye == "OD")[1,]
 age <- example2$age[1]
 normal_values <- getnv()$agem$model(age)[1:10]
-example2[, getvfcols()[1:10]] - normal_values
+example2[,getvfcols()[1:10]] - normal_values
 @
 
-To calculate the total deviation, use the function from the \code{nv} object:
+To calculate the total deviation, use the function from the normative values, do:
 
 <<>>=
 td <- gettd(example2)
 td[, getvfcols()[1:10]]
 @
 
-\subsubsection{Pattern deviation}
-
 Pattern deviation is obtained by subtracting the general height:
-
 <<>>=
 gh <- getgh(td)
 pattern_defects <- td[, getvfcols()[1:10]] - gh
 @
 
 Or automatically:
-
 <<>>=
 pd <- getpd(td)
 pd[, getvfcols()[1:10]]
 @
 
 \subsubsection{Probability values}
-
-Even healthy eyes may show small deviations. To interpret these values, we calculate the probability that a deviation reflects pathology using empirical distributions from the normative data \citep{IMF:Hei1987a, IMF:Heijl1991}.
-
+Even healthy eyes may show unusually small deviations. To interpret these values, we calculate the probability that a deviation reflects pathology using empirical distributions from the normative data \citep{IMF:Hei1987a, IMF:Heijl1991}. These are based on the look up tables for probabilities:
 <<>>=
 getnv()$lut$probs
+@
+
+And can be calculated with:
+<<>>=
 gettdp(td)[, getvfcols()[1:10]]
 getpdp(pd)[, getvfcols()[1:10]]
 @
@@ -364,34 +427,26 @@ Associated probabilities are calculated with \code{getglp()}:
 getglp(gl)[, getlocini():ncol(gl)]
 @
 
-\subsection{Plotting the visual field}
+\subsection{Visualizing the visual field}
+There are various ways to visualize perimetric data. These visualizations should be interpreted as simplified representations of the hill of vision (see Figure \ref{fig:hill}). Standard displays include color-coded probability maps, graphical representations of the blind spot, and border enhancements that encode diagnostic information. For example, \code{vfplot} with the argument \code{"td"} generates plots that require normative data on sensitivities and the probabilities of deviations from these norms. Normative values for the Humphrey Field Analyzer 24-2 SITA standard are included in the package \citep{IMF:Mar2013b} but must be generated for other perimeters and psychometric strategies.
 
-There are various ways to visualize perimetric data. These visualizations should be interpreted as simplified representations of the hill of vision. Standard displays include color-coded probability maps, graphical representations of the blind spot, and border enhancements that encode diagnostic information. For example, \code{vfplot} with the argument \code{"td"} generates plots that require normative data on differential light sensitivity and the probabilities of deviations from these norms. This information is included for the Humphrey Field Analyzer patterns but must be provided separately for other perimeters.
 By convention, when displaying both eyes side-by-side, the left eye appears on the left and the right eye on the right. This reflects the patient's visual fields, with blind spots positioned temporally. This is in contrast to structural imaging, which is typically displayed as viewed by the examiner. It is important to specify the type of data represented in the visual field tables. The default is set to \emph{total deviation} (\code{td}). In the following plot, yellow indicates a probability $<$ 0.05, orange $<$ 0.02, red $<$ 0.01, and dark red $<$ 0.005.
 
 <<fig=TRUE, out.width='.25\\textwidth', out.height='!'>>=
-
 vfplot(example2)
-
 @
-
 A gallery of all available plot types is available at \url{https://rpubs.com/huchzi/1307927}.
 
 \subsection{Longitudinal analyses}
-
-Monitoring visual function over time is a key application of perimetry in managing glaucoma. Sensitivity measurements naturally fluctuate between tests. This variability increases in eyes with glaucoma, especially at affected locations. Hence, two tests showing differences cannot alone indicate progression. Instead, statistical analysis across a series of tests is required to detect significant change. Progression analysis methods fall into two broad categories: \emph{event-based} and \emph{trend-based} approaches. These may further be classified by their reliance on population-based normative data, mathematical models of progression, or model-free methods.
+Monitoring visual function over time is a key application of perimetry in managing glaucoma. Sensitivity measurements naturally fluctuate between tests. This variability increases in eyes with glaucoma, especially at affected locations. Hence, two tests showing differences cannot alone indicate progression with any reliability. Instead, statistical analysis across a series of tests is required to detect statistically significant change. Progression analysis methods fall into two broad categories: \emph{event-based} and \emph{trend-based} approaches. These may further be classified by their reliance on population-based normative data, mathematical models of progression, or model-free methods.
 
 Event-based methods (not implemented in \pkg{visualFields}) compare a test to a baseline and flag change if the sensitivity reduction is unlikely ($p < 0.05$) based on normative variability, and if confirmed in subsequent tests.
 
-Trend-based methods assume slower change and analyze all tests in a series. Though less intuitive for clinicians, these methods are statistically robust and reflect real-world progression patterns.
-
-To illustrate, we select a time series of 27 visual fields from one eye:
+Trend-based methods analyze all tests in a series. Though less intuitive for clinicians, these methods are statistically robust and reflect real-world progression patterns. To illustrate, we select a time series of 27 visual fields from one clearly progressing eye:
 
 <<>>=
 example3 <- vffilter(vfpwgSunyiu24d2, id == "sample1" & eye == "OS")
 @
-
-\subsubsection{Statistical analysis}
 
 Statistical progression analysis may be performed via:
 \begin{itemize}
@@ -424,35 +479,28 @@ prog2 <- poplr(example3)
 str(prog2, max.level = 1, strict.width = "wrap")
 @
 
-The null distribution and observed statistic:
-
-<<>>=
-summary(prog2)
-prog2[c("csr", "csrp", "csl", "cslp")]
-@
-
-Visualization:
-
+The following histogram shows the null distribution (dark gray columns) and observed S statistic (red vertical line):
 <<fig=TRUE>>=
 ggplot(data.frame(x = prog2$cstats$cslall), aes(x = x)) + 
          geom_histogram() +
-         geom_vline(xintercept = prog2$csl, color = "red", size = 1) +
+         geom_vline(xintercept = prog2$csl, color = "red", linewidth = 1) +
          scale_x_continuous("S-values", breaks = seq(0, 200, 20))
 @
 
-\subsubsection{Plotting progression}
+The value of the observed S statistic and corresponding $p$-value were:
+<<>>=
+c(prog2$csl, prog2$cslp)
+@
 
+\subsubsection{Visualizing pointwise progression}
 Use \code{vfplotplr()} to visualize results from the pointwise linear regression (PLR). In this figure, yellow indicates $p < 0.05$, orange $< 0.02$, red $< 0.01$, and dark red $< 0.005$.
-
 <<fig=TRUE>>=
 vfplotplr(example3)
 @
 
-
 Example plots used for monitoring progression are available in the gallery: \url{https://rpubs.com/huchzi/1307927}.
 
 \subsection{Automated reports}
-
 Static reports and Shiny applications can be generated:
 
 <<eval=FALSE>>=
@@ -461,52 +509,62 @@ vfsfashiny(example2)
 @
 
 Automated reports can also be generated for progression series:
-
 <<eval = FALSE>>=
 vfspa(example3, file = "test.pdf")
 vfspashiny(example3)
 @
 
-\subsection{Structure-function correlation}
+These reports are samples to be cloned, customized and improved upon.
 
-Anatomical modeling aids comparison between structural imaging and functional testing in glaucoma.
-
-The ganglion cell bodies stimulated by a visual field location are displaced from the photoreceptor input region, especially in the central field. This displacement is modeled in \pkg{visualFields} based on Montesano et al. \citep{IMF:Montesano2020}.
-
-<<>>=
-locmap <- locmaps$p10d2
-gcmap <- vf2gc(locmap$coord)
-@
-
-A plot of the 10-2 grid and the displacement of the corresponding ganglion cell bodies:
+\section{Customization of the visualFields package} \label{sec:others}
+One of the key characteristics of the \pkg{visualFields} package is its flexibility to be customized to other forms of static automated perimetry. For the package to be used with different perimetry data, however, we are required to collect normative data and generate the reference values from it. In order to customize \pkg{visualFields} for use with other type of perimetry data, we need to define the data.frame as described before and run \code{setlocini()}. The location data, including x and y coordinates, in the visual field data need to be set with \code{setlocmap()}. We need also to set the graphical parameters with \code{setgpar()}, and last but not least, generate normative values for analysis and set them with \code{setnv()}. Here is an example for two custom tests that are run independently but analyzed jointly. One test covers the central 30 degrees of visual angle (in red in the following Figure) and the other covers the rest from $-50$ nasally and inferiorly to 80 temporally and 40 superiorly. Both test use the Goldmann size V stimulus (1.72 degrees of diameter) as opposed to the conventional size III (0.43 degrees)
 
 <<echo=TRUE, fig=TRUE>>=
-
-rbind(data.frame(label = "10-2 grid", locmap$coord), 
-      data.frame(label = "Corresponding ganglion cells", gcmap)) |>
-        ggplot(aes(x = x, y = y)) +
-        geom_point() +
-        facet_wrap(~ label) +
+locmap <- rbind(
+  data.frame(label = "Peripheral", locmaps$pPeri$coord, color = "black"),
+  data.frame(label = "Central", locmaps$pPC26$coord, color = "red")
+)
+  
+ggplot(locmap, aes(x = x, y = y)) +
+  geom_point(aes(color = color)) +
+  scale_color_identity() +
   theme_minimal(12) +
-  scale_x_continuous("", limits = c(-10, 10)) +
-  scale_y_continuous("", limits = c(-10, 10)) +
-  guides(x = "none", y = "none") 
-
+  scale_x_continuous("", limits = c(-50, 80)) +
+  scale_y_continuous("", limits = c(-50, 30)) +
+  guides(x = "none", y = "none") +
+  coord_fixed(ratio = 1)
 @
 
-Nerve fiber paths from each location to the optic disc can also be modeled, using Jansonius' framework \citep{IMF:Jan2009, IMF:Jan2012} with the functions \code{cart2jpolar}, \code{jpolar2cart}, \code{bundlePath}, \code{loc2psi}, and \code{psi2oct}.
+We can generate normative values for both grids with normative data \citep{IMF:Marin2018c}:
+<<echo=TRUE>>=
+# Settings for the central perimetry test PC26
+setlocini(18)
+setlocmap(locmaps$pPC26)
+nvc <- nvgenerate(vfctrIowaPC26, method = "pointwise")
+gparc <- vfgpar(locmaps$pPC26$coord)
+# Settings for the peripheral perimetry test Peri
+setlocini(17)
+setlocmap(locmaps$pPeri)
+nvp <- nvgenerate(vfctrIowaPeri, method = "pointwise")
+gparp <- vfgpar(locmaps$pPeri$coord)
+# set the visualization limits to be the same
+gparc$tess$xlim <- gparp$tess$xlim
+gparc$tess$ylim <- gparp$tess$ylim
+@
 
-\section{Support for other patterns and perimeters}
-
-The best supported alternativ to the 24-2 pattern is the HFA 10-2 pattern. Remember that you must changes other settings along with the \code{locmap}, including the \code{normvals} and the \code{gpar} parameters. Otherwise, the \code{vfplot()} function will throw an error. It is very important that you set up the environment completely (\code{locmap}, \code{nv}, \code{gpar}).
-
-<<fig=TRUE>>=
-
-setlocmap(locmaps$p10d2)
-setnv(normvals$sunyiu_10d2)
-setgpar(gpars$p10d2)
-vfplot(vffilter(vfctrSunyiu10d2, id == 2, eye == "OD"))
-
+From here, the visualization for the joint analysis with the two different perimeters can be done as follows:
+<<echo=TRUE, fig=TRUE>>=
+idx <- 13
+setlocini(17)
+setlocmap(locmaps$pPeri)
+setnv(nvp)
+setgpar(gparp)
+vfplot(vfctrIowaPeri[idx,])
+setlocini(18)
+setlocmap(locmaps$pPC26)
+setnv(nvc)
+setgpar(gparc)
+vfplot(vfctrIowaPC26[idx,], new = TRUE)
 @
 
 Remember that you can always reset the environment with...
@@ -515,21 +573,50 @@ Remember that you can always reset the environment with...
 setdefaults()
 @
 
-\subsubsection{Generate normal values}
-
-The locmap will be available online or from the manufacturer. Perimetry conventions vary across manufacturers. The package includes normative data for Humphrey 24-2 (Goldmann III) and Iowa full-field perimetry with Goldmann V \citep{IMF:Marin2018c}. Use \code{nvgenerate()} to build the normative model for a custom dataset. You will need a sufficiently large dataset of normal fields balanced for age in order to create your own norm values.
-
-<<>>=
-nv <- nvgenerate(vfctrSunyiu24d2)
-setnv(nv)
-@
+There are functions that can be used or cloned and customized to modulate the behavior of the normative values. These are:
+\begin{itemize}
+  \item \code{agelm} returns a list with coefficients and a function defining a linear age model,
+  \item \code{tddef} returns a function for the computation of TD values,
+  \item \code{ghdef} returns a function for the computation of the general height,
+  \item \code{pddef} returns a function for the computation of PD values,
+  \item \code{lutdef} returns a look up table and a function for the computation of the probability values for TD and PD,
+  \item \code{gdef} returns a function to compute global indices, and
+  \item \code{lutgdef} returns a look up table and a function for the computation of the probability values for global indices
+\end{itemize}
 
 \subsubsection{Support for Octopus perimeters}
+Octopus data can be imported with \code{loadoctopus()}. However, no normative values are provided by the package. Detailed examples for exporting data from the Octopus 900 and using \code{loadoctopus()} can be found here: \url{https://huchzi.github.io/vf1/loadOctopus.html}.
 
-Octopus data can be imported with \code{loadoctopus()}. However, no normal values are provided by the package, yet. Detailed examples for exporting data from the Octopus 900 and using \code{loadoctopus()} can be found here: \url{https://huchzi.github.io/vf1/loadOctopus.html}.
+\subsection{The Jansonius map}
+The \pck{visualFields} package includes functions for the implementation of the Jansonius map \citep{IMF:Jan2012}, describing average never fiber bundle paths along the visual field from the optic nerve head (ONH). This model aids in comparisons between structural imaging and perimetry data in glaucoma. Functions are implemented to convert from Cartesian to the modified polar coordinates in the Jansonius map, the average bundle paths, and the angle of incidence of the average bundle passing through a specific visual field location on the ONH. One optical coherence tomgraphy (OCT) image modality consists of scanning along a circle centered at the center of the blind spot. A function returns the correspondence between angle of incidence of the average bundle on the ONH and the circular scan. These functions are:
+
+\begin{itemize}
+  \item \code{cart2jpolar} converts the Cartesian coordinates to the polar coordinates in the distorted space used in the Jansonius map,
+  \item \code{jpolar2cart} converts back from the Jansonius polar coordinates to Cartesian coordinates,
+  \item \code{bundlePath} returns a function describing the expected fiber path given an angle of incidence on the ONH,
+  \item \code{loc2psi} returns the angle of incidence of the average bundle path that passes through a specific location of the visual field,
+  \item \code{psi2oct} returns the angle of OCT circular scans corresponding to average bundle paths with specific angle of incidence at the ONH, and
+\end{itemize}
+
+For some analyses is important to understand the underlying structure of retinal elements that are stimulated during perimetry stimulus presentation. This is particularly important when the distance from the center of vision is less than 10 degrees of visual angle. The photoreceptors that are stimulated are connected to ganglion cells (whose axons travel in bundles described by the Jansonius map and form the optic never). For retinal location on this area, the photoreceptors are not on the same geographical location as the ganglion cell bodies \citep{IMF:Drasdo2007}. The displacement between photoreceptors and ganglion cell bodies follow the implementation described by Montesano et al. \citep{IMF:Montesano2020}. For the most common perimetry test targeting the central 10 degrees of the visual field, the 10-2 grid, the grid of stimulus locations and the corresponding ganglion cell bodies are shown in the next figure:
+<<echo=TRUE, fig=TRUE>>=
+locmap <- locmaps$p10d2
+gcmap <- vf2gc(locmap$coord)
+
+rbind(data.frame(label = "10-2 grid", locmap$coord),
+      data.frame(label = "Corresponding ganglion cells", gcmap)) |>
+  ggplot(aes(x = x, y = y)) +
+  geom_point() +
+  facet_wrap(~ label) +
+  theme_minimal(12) +
+  scale_x_continuous("", limits = c(-10, 10)) +
+  scale_y_continuous("", limits = c(-10, 10)) +
+  guides(x = "none", y = "none") +
+  coord_fixed(ratio = 1)
+@
+
 
 %% -- Summary and discussion ---------------------------------------------------
-
 \section{Summary and discussion} \label{sec:summary}
 
 The \pkg{visualFields} package provides a robust suite of tools for statistical analysis and visualization of visual field data. It supports single-field reports, progression analysis, anatomical modeling, and customization for non-standard perimeters. As part of the Open Perimetry Initiative, it aims to foster reproducibility and transparency in perimetry research. Future development could focus on expanding normative datasets, full DICOM integration, and extended support for additional testing strategies and devices.
@@ -537,16 +624,9 @@ The \pkg{visualFields} package provides a robust suite of tools for statistical 
 %% -- Acknowledgements ---------------------------------------------------
 
 \section{Acknowledgments}
-The visualField's package would not have existed if it wasn't for the important contribution of many contributors who partially funded the development of the package, and/or contributed datasets, code, and above all insight on visual fields analysis and about perimetry and visual sciences at large. Huge thanks to:
-  - William H Swanson
-  - Michael Wall
-  - Andrew Turpin
-  - Paul H Artes
-  - Giovanni Montesano
-  - Mitchell W Dul
+The \pkg{visualFields} package would not have existed if it wasn't for the important contribution of many contributors who partially funded the development of the package, and/or contributed datasets, code, and above all insight on visual fields analysis and about perimetry and visual sciences at large. In particular, we are thankful to Paul H. Artes and Andrew Turpin who are part of the Open Perimetry Initiative (OPI). William H. Swanson and Michael Wall provided funding for its development. Giovanni Montesano contributed with his ganglion cell displacement code. Paul H. Artes and one of the coauthors (IMF) designed the first version of the package.
 
 %% -- Bibliography -------------------------------------------------------------
-
 \bibliography{references}
 
 %% -- Appendix (if any) --------------------------------------------------------
