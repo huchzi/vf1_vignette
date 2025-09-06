@@ -74,9 +74,9 @@ The Open Perimetry Initiative (OPI) \citep{IMF:Tur2012, IMF:Marin2022a} provides
 The \pkg{visualFields} package, developed as part of the OPI ecosystem, provides a suite of tools for the statistical analysis and visualization of visual field data. It offers a flexible framework to support the development and application of innovative methods for analyzing visual field loss and its progression over time, with applications in both research and clinical settings.
 \subsection{What is the visual field?}
 
-The visual field refers to the entire area that can be seen at a given moment, encompassing both central and peripheral vision. It is typically measured in degrees of visual angle, with the fixation point defined as the origin at $x = 0^\circ$ and $y = 0^\circ$. Locations temporal and superior to fixation are assigned positive angles, whereas nasal and inferior locations are assigned negative angles.
+The visual field refers to the entire area that can be seen at a given moment, encompassing both central and peripheral vision. Locations in the visual field are typically measured in degrees of visual angle, with the fixation point defined as the origin at $x = 0^\circ$ and $y = 0^\circ$. Locations temporal and superior to fixation are assigned positive angles, whereas nasal and inferior locations are assigned negative angles.
 
-In healthy vision, most visual functions, particularly light sensitivity, decline with increasing eccentricity—i.e., distance from the center of fixation. This decline in differential light sensitivity gives rise to a three-dimensional [IMF]surface[IMF] known as the hill of vision, also referred to as Traquair’s island of vision \citep{IMF:Traquair1938}. Figure~\ref{fig:hill} below shows a classic rendering of the hill of vision by Aulhorn and Harms \citep{IMF:Aul1967}.
+In healthy vision, most visual functions, particularly light sensitivity, decline with increasing eccentricity—i.e., distance from the center of fixation. This decline in differential light sensitivity gives rise to a three-dimensional surface known as the hill of vision, also referred to as Traquair’s island of vision \citep{IMF:Traquair1938}. Figure~\ref{fig:hill} shows a stimulus presentation in a half-bowl perimeter and a rendering of the hill of vision \citep{IMF:Aul1967}.
 
 \begin{figure}[t!]
 \centering
@@ -86,37 +86,54 @@ In healthy vision, most visual functions, particularly light sensitivity, declin
 
 \subsection{What is perimetry?}
 
-\emph{Perimetry} (visual field testing) uses psychophysical methods to quantify the visual field by measuring a patient's sensitivity to light differences at various locations within the field. Psychophysical tests allow for the [IMF]clinical and[IMF] scientific measurement of the relationship between physical stimulus strength[IMF], intensity of light or more precisely stimulus contrast for a constant background[IMF] and subjective perception. This is achieved by systematically varying the stimulus strength across discrete trials based on the observer's responses. [IMF]In clinical settings[IMF], the observer is restricted to a limited set of [IMF]trials[IMF], and the stimuli are varied according to a predefined algorithm.
+\emph{Perimetry} (visual field testing) uses psychophysical methods to quantify the visual field by measuring a patient's sensitivity to light differences at various locations within the field. Psychophysical tests allow for the clinical and scientific measurement of the relationship between physical stimulus strength (i.e. intensity of light or more precisely stimulus contrast for a constant background) and subjective perception. This is achieved by systematically varying the stimulus strength across discrete trials based on the observer's responses. The observer responds by either pressing or not pressing a button within a fixed time window following the presentation of an increase in intensity or contrast in the visual field (a yes/no response). The relationship between stimulus strength and response probability is modeled by a \emph{psychometric function}, which characterizes the likelihood of a "yes" response as a function of stimulus strength \citep{CH:knoblauch_modeling_2012}. These models yield an estimate of the threshold, defined as the stimulus strength at which the observer detects the stimulus with a probability of 50\%. In clinical settings, the observer is restricted to a limited set of trials, and the stimuli are varied according to a predefined algorithm.
 
-In visual field testing, the observer responds by either pressing or not pressing a button within a fixed time window following the presentation of [IMF]an increase in intensity or contrast[IMF] in the visual field (a yes/no response). The relationship between stimulus strength and response probability is modeled by a \emph{psychometric function}, which characterizes the likelihood of a "yes" response as a function of stimulus strength \citep{CH:knoblauch_modeling_2012}. These models yield an estimate of the threshold, defined as the stimulus strength at which the observer detects the stimulus with a probability of 50\%.
+\begin{table}[ht]
+\centering
+\caption{Key Terms in Perimetry}
+\begin{tabular}{|p{3cm}|p{10cm}|}
+\hline
+\textbf{Term} & \textbf{Definition} \\
+\hline
+\textbf{Static Perimetry} & A method of visual field testing in which stimuli are presented at predefined locations with varying intensities to determine the minimum visible stimulus at each point. \\
+\hline
+\textbf{Kinetic Perimetry} & A technique where a stimulus is moved from non-seeing to seeing areas to map the borders of the visual field. Cannot be analyzed with \pkg{visualFields.} \\
+\hline
+\textbf{Campimetry} & Visual field testing on a flat surface instead of a hemispherical bowl. \\
+\hline
+\textbf{Threshold} & The minimum stimulus intensity that a patient can detect at a specific location in the visual field with a certain probability (usually 50\%). \\
+\hline
+\textbf{Sensitivity} & The inverse of threshold on a logarithmic scale (dB); higher sensitivity means that lower intensity stimuli can be detected at a given location. \\
+\hline
+\textbf{Location Grid} & A predefined array of points across the visual field at which stimuli are presented to assess visual function. \\
+\hline
+\textbf{Hill of Vision} & A three-dimensional representation of visual sensitivity across the visual field, with peak sensitivity at fixation and decreasing sensitivity toward the periphery. \\
+\hline
+\end{tabular}
+\end{table}
+
 
 \subsection{How do we quantify sensitivity in perimetry?}
 
-[IMF] I HAVE EDITED THIS AND THE NEXT PARAGRAPHS TO AVOID GIVING ASSESSMENTS ON THE DIFFERENT METHODS, AS THIS IS A COMPLEX ISSUE:
-* I WOULD NOT SAY PSYCHOMETRIC FUNCTIONS ARE INEFFICIENT HERE AS IT DEPENDS ON WHAT YOU ARE AFTER AND LEAVE THE EMPHASIS ON TIME AND HOW THIS IS CLINICALLY IMPRACTICAL
-* EFFICIENCY DEPENDS ON WHAT WE ARE AFTER, FOR THRESHOLD IS UNNECESSARY, BUT FOR FP AND FN AND EVEN SLOPE OF THE PSYCHOMETRIC FUNCTION, THEY ARE IMPORTANT
-* I HAVE ALSO ADDED A PARAGRAPH ON STAIRCASE AND FULL THRESHOLD
-The traditional method for estimating this threshold is the method of constant stimuli, in which stimuli are presented multiple times at several discrete, fixed intensities around the anticipated threshold. This approach yields an estimate of the psychometric function, which is typically modeled using a cumulative distribution function (CDF), most commonly the Gaussian or Weibull CDF. However, this method requires a large number of trials to provide accurate estimations of the parameters of the psychometric function, intensity threshold, slope at threshold, and false positive and negative rates. Long test duration negatively affect attention and make any test impractical for clinical use.
+The traditional method for estimating this threshold is the method of constant stimuli, in which stimuli are presented multiple times at several discrete, fixed intensities around the anticipated threshold. This approach yields an estimate of the psychometric function, which is typically modeled using a cumulative distribution function (CDF), most commonly the Gaussian or Weibull CDF. However, obtaining precise estimates of the psychometric function’s parameters — such as the intensity threshold, the slope at threshold, and the false positive and false negative rates — requires a large number of trials. Long test duration negatively affect attention and make any test impractical for clinical use.
 
 Two classic alternative approaches that does not require estimates of the full psychometric function and instead aims at estimating the threshold stimulus intensity at which half the presentations are seen are the staircase and the full threshold (consisting on two staircase algorithms ran one after the other). Staircase algorithms start by presenting a stimulus at an initial guess. If the stimulus is seen, then intensity is decreased by steps of a predetermined value and otherwise it is increased. After the first reversal (transition from seen to not seen or viceversa), the amount at which the stimulus intensity changes is half the original step size. At the second reversal the algorithm stops. The estimated threshold is typically obtained by averaging the intensities of the last two presentations. Staircase and its modified, full threshold version, which was the standard when static automated perimetry was first introduced, see e.g., \citep{IMF:Heijl1985}, is still too long and impractical for clinical use.
 
-For this reason, psychophysical Bayesian algorithms \citep{IMF:Taylor1967,IMF:Kin1994} to reduce the number of stimulus presentations were adapted to balance precision and test duration. Some algorithms, such as the \emph{Swedish Interactive Threshold Algorithm} (SITA) used in the Humphrey Field Analyzer, also incorporate information from adjacent locations in the visual field.[IMF]
+For this reason, psychophysical Bayesian algorithms \citep{IMF:Taylor1967,IMF:Kin1994} to reduce the number of stimulus presentations were adapted to balance precision and test duration. Some algorithms, such as the \emph{Swedish Interactive Threshold Algorithm} (SITA) used in the Humphrey Field Analyzer, also incorporate information from adjacent locations in the visual field.
 
-[IMF]In perimetry, luminance is usually reported in apostilbs rather than ${\rm cd/m^2}$, where $\pi {\rm apostilbs} = 1 {\rm cd/m^2}$. The background is nominally, $10 {\rm cd/m^2}$ or 31.4 apostilbs, and the intensity thresholds, $\Delta L_{\rm thr}$ is the stimulus luminance at threshold minus $10 {\rm cd/m^2}$. The maximum intensity threshold $\Delta L_{\rm max}$ can differ among perimeters. For the Humphrey Field Analyzer (HFA) the maximum is 10{,}000\,asb, whereas recent Octopus 900 perimeters commonly use 4000\,asb \citep{CH:racette_visual_nodate}. Regardless of the units used and the maximum possible luminance, at the conclusion of the test, the intensity threshold at each test location is converted into sensitivity, the inverse of intensity threshold, and expressed on a logarithmic scale, the decibel (dB), thus,
+In perimetry, luminance is usually reported in apostilbs rather than ${\rm cd/m^2}$, where $\pi \times {\rm apostilbs} = 1 {\rm cd/m^2}$. The background is nominally, $10 {\rm cd/m^2}$ or 31.4 apostilbs, and the intensity thresholds, $\Delta L_{\rm thr}$ is the stimulus luminance at threshold minus $10 {\rm cd/m^2}$. The maximum intensity threshold $\Delta L_{\rm max}$ can differ among perimeters. For the Humphrey Field Analyzer (HFA) the maximum is 10{,}000\,asb, whereas recent Octopus 900 perimeters commonly use 4000\,asb \citep{CH:racette_visual_nodate}. Regardless of the units used and the maximum possible luminance, at the conclusion of the test, the intensity threshold at each test location is converted into sensitivity, the inverse of intensity threshold, and expressed on a logarithmic scale, the decibel (dB), thus,
 
 \begin{equation}
 dB = 10\ \rm log \left (\frac{\Delta L_{\rm max}}{\Delta L_{\rm thr}} \right)\ .
 \end{equation}
 %
 Since the maximum luminance differential is $\Delta L_{\rm max}$ the fraction is $\ge 1$ and therefore dB $\ge 0$, with 0 being the maximum stimulus possible, and therefore the minimum sensitivity that can be measured by the perimeter. dB scales are normally limited to 40 dB which corresponds to 1 asb for the HFA and 0.4 asb for the Octopus 900.
-[IMF]
 
-Static automated perimetry (SAP) aims to estimate the hill of vision as accurately as possible within the constraints of clinical practice. [IMF COMMENT: The S in SAP is static, not standard. It was HFA's smart idea to replace the S to mean "standard". I WOULD DELETE THIS: The most common form is standard automated perimetry (SAP)] It is performed inside a dome-shaped device (a Ganzfeld perimeter) to ensure a uniform distance between the eye and all stimulus locations. [IMF COMMENT: CAMPIMETRY AND PERIMETRY ARE THE SAME? DELETE THE FOLLOWING? In contrast, campimetry] [IMF]With the advent of new technology, new perimeters are being developed on flat screens on computers, tables, phones and, more notably, virtual-reality systems. The are becoming more[IMF] common in particular for use in telemedicine.
+Static automated perimetry (SAP) aims to estimate the hill of vision as accurately as possible within the constraints of clinical practice. It is performed inside a dome-shaped device (a Ganzfeld perimeter) to ensure a uniform distance between the eye and all stimulus locations. In contrast, campimetry is performed on a flat surface. With the advent of new technology, new visual field tests basesd on campymetry are being developed on flat screens on computers, tables, phones and, more notably, virtual-reality systems. They are becoming more common in particular for use in telemedicine.
 
 \subsection{Aims of the visualFields package}
-[IMF COMMENT: I CREATED THIS AND THE PREVIOUS NEW SECTIONS FOR ORGANIZATION PURPOSES. I MOVED THE SENTENCE REGARDING KINETIC PERIMETRY TO THE END OF THIS SECTION]
 
-[IMF]The \pkg{visualFields} package is an aid for the standardization of visual field data analysys from any device running SAP. It[IMF] provides the following functionality:
+The \pkg{visualFields} package is an aid for the standardization of visual field data analysys from any device running SAP. It provides the following functionality:
 \begin{itemize}
   \item Standardized formats for representing visual field data
   \item Functions for importing data from perimeters
@@ -130,9 +147,7 @@ Static automated perimetry (SAP) aims to estimate the hill of vision as accurate
   \item Functions to aid with structure-function correspondence (such as the Jansonius map \citep{IMF:Jan2012})
 \end{itemize}
 
-By default, the package is set up to handle Humphrey Field Analyzer 24-2 visual fields. It is recommended to use such data for exploring the package and data is provided within the package for this purpose. However, other patterns and devices can be used. The package also contains all necessary data for the HFA 10-2 pattern. However, the package is designed to be extensible, allowing users to add new patterns, devices, and normative datasets. 
-
-The \pkg{visualFields} package was developed to analyze data from SAP. Manual kinetic perimetry, in which a stimulus of constant luminance is moved across the field to identify isosensitivity contours, is outside the scope of this package. It is available from CRAN under the Apache 2.0 license and can be installed with:
+By default, the package is set up to handle Humphrey Field Analyzer 24-2 visual fields. It is recommended to use such data for exploring the package and data is provided within the package for this purpose. However, other patterns and devices can be used. The package also contains all necessary data for the HFA 10-2 pattern. However, the package is designed to be extensible, allowing users to add new patterns, devices, and normative datasets. It is available from CRAN under the Apache 2.0 license and can be installed with:
 
 <<eval=FALSE>>=
 install.packages("visualFields")
@@ -151,7 +166,7 @@ To invoke \pkg{visualFields} in R, run
 library("visualFields")
 @
 
-[IMF]In Section \ref{sec:methods}, we will show how the data supplied by the package can be analyzed with the default environment settings. In Section \ref{sec:results}, we will show how to plot the data, perform longitudinal and cross-sectional analyses, how to import data from the Humphrey perimeter and how to set up the environment for these data. Section \ref{sec:others} outlines support for non-conventional settings and other perimeters. Final remarks are shown in Section \ref{sec:summary}.[IMF]
+In Section \ref{sec:methods}, we will show how the data supplied by the package can be analyzed with the default environment settings. In Section \ref{sec:results}, we will show how to plot the data, perform longitudinal and cross-sectional analyses, how to import data from the Humphrey perimeter and how to set up the environment for these data. Section \ref{sec:others} outlines support for non-conventional settings and other perimeters. Final remarks are shown in Section \ref{sec:summary}.
 
 %% -- Methods ------------------------------------------------------------------
 
@@ -194,7 +209,7 @@ The function \code{getvfcols()} returns the numbers of the columns that contain 
 vfpwgSunyiu24d2[1, getvfcols()]
 @
 
-Below is a list of thet datasets included in \pck{visualFields}:
+Below is a list of thet datasets included in \pkg{visualFields}:
 <<eval=FALSE>>=
 vfctrSunyiu24d2 # Control subjects for HFA 24-2 SITA standard
 vfctrSunyiu10d2 # Control subjects for HFA 10-2 SITA standard
@@ -208,8 +223,6 @@ vfpwgRetest24d2 # 30 patients tested each 12 times with the HFA 10-2 SITA standa
 @
 
 \subsubsection{Reliability indices}
-[IMF COMMENT: I think this was too bold, so I edited it to tone it down]
-[IMF]Given the psychophysical nature of perimetry as a clinical test, attention, fatigue, and other psychological factors can affect the estimated sensitivities. For this reason, they include some catch and fixation trials to assess the quality of the test undertaken. Response quality, and the validity of the data collected by the test, is typically assessed by the following reliability indices:[IMF]
 
 \begin{description}
   \item [False positives (\code{fpr})] Responses when no stimulus is presented when the patients expects a presentation from the rhythm of the exam
@@ -250,7 +263,7 @@ vfaggregate(example1, by = "eye", median)
 example1$newVariable <- "invalid"
 vfisvalid(example1)
 @
-Here, the visual field data is not value, because an illegal column was added.
+Here, the visual field data is not valid, because an illegal column was added.
 
 The \code{vfread()} and \code{vfwrite()} functions can be used to read and write data in this format from a CSV file, but they cannot be used to import native data from the perimeters. 
 
@@ -261,7 +274,8 @@ The following functions can be used to import data from perimeters.
   \item \code{loadoctopus()} for Octopus 900 (Haag-Streit, Köniz, Switzerland)
 \end{itemize}
 
-\subsection{Location maps}[IMF COMMENT: they should have been called grid or locgrid, but I was too young back then, so now we are stuck with location maps instead of grids]
+\subsection{Location maps}
+
 Test locations are defined by location maps (\code{locmaps}), which specify the spatial coordinates of stimulus presentation points in degrees of visual angle. These maps reflect the layout used by visual field testing devices. When analyzing data, the correct location map must be specified.
 
 <<>>=
@@ -354,7 +368,7 @@ There are functions to help generate graphical parameters from the coordinates o
 
 %% -- Results ------------------------------------------------------------------
 \section{Analyzing visual fields} \label{sec:results}
-This section describes how to use the visual field package to analyze pointwise locations, calculate global parameters that summarize the visual field, perform longitudinal analyses, and plot the pointwise results. 
+This section describes how to use the visual field package for pointwise analysis of locations, calculation of global parameters that summarize the visual field, longitudinal analyses, and plotting of the results. 
 
 \subsection{Pointwise results}
 \subsubsection{Total and pattern deviation}
@@ -435,6 +449,8 @@ By convention, when displaying both eyes side-by-side, the left eye appears on t
 <<fig=TRUE, out.width='.25\\textwidth', out.height='!'>>=
 vfplot(example2)
 @
+
+
 A gallery of all available plot types is available at \url{https://rpubs.com/huchzi/1307927}.
 
 \subsection{Longitudinal analyses}
@@ -454,7 +470,7 @@ Statistical progression analysis may be performed via:
 \item \emph{Pointwise linear regression} (PLR)
 \end{itemize}
 
-The \code{glr()} function estimates a regression model for global indices. For the example series, the the regression can be calculated as follows:
+The \code{glr()} function estimates a regression model for global indices. For the example series, the regression can be calculated as follows:
 
 <<>>=
 global_indices <- getgl(example3)
@@ -517,7 +533,7 @@ vfspashiny(example3)
 These reports are samples to be cloned, customized and improved upon.
 
 \section{Customization of the visualFields package} \label{sec:others}
-One of the key characteristics of the \pkg{visualFields} package is its flexibility to be customized to other forms of static automated perimetry. For the package to be used with different perimetry data, however, we are required to collect normative data and generate the reference values from it. In order to customize \pkg{visualFields} for use with other type of perimetry data, we need to define the data.frame as described before and run \code{setlocini()}. The location data, including x and y coordinates, in the visual field data need to be set with \code{setlocmap()}. We need also to set the graphical parameters with \code{setgpar()}, and last but not least, generate normative values for analysis and set them with \code{setnv()}. Here is an example for two custom tests that are run independently but analyzed jointly. One test covers the central 30 degrees of visual angle (in red in the following Figure) and the other covers the rest from $-50$ nasally and inferiorly to 80 temporally and 40 superiorly. Both test use the Goldmann size V stimulus (1.72 degrees of diameter) as opposed to the conventional size III (0.43 degrees)
+One of the key characteristics of the \pkg{visualFields} package is its flexibility to be customized to other forms of static automated perimetry. For the package to be used with different perimetry data, however, normative data must be collected and the reference values calculated from it. In order to customize \pkg{visualFields} for use with other type of perimetry data, the data.frame has to be defined as described before and run \code{setlocini()}. The location data, including x and y coordinates, in the visual field data need to be set with \code{setlocmap()}. We need also to set the graphical parameters with \code{setgpar()}, and last but not least, generate normative values for analysis and set them with \code{setnv()}. Here is an example for two custom tests that are run independently but analyzed jointly. One test covers the central 30 degrees of visual angle (in red in the following Figure) and the other covers the rest from $-50$ nasally and inferiorly to 80 temporally and 40 superiorly. Both test use the Goldmann size V stimulus (1.72 degrees of diameter) as opposed to the conventional size III (0.43 degrees)
 
 <<echo=TRUE, fig=TRUE>>=
 locmap <- rbind(
@@ -587,8 +603,8 @@ There are functions that can be used or cloned and customized to modulate the be
 \subsubsection{Support for Octopus perimeters}
 Octopus data can be imported with \code{loadoctopus()}. However, no normative values are provided by the package. Detailed examples for exporting data from the Octopus 900 and using \code{loadoctopus()} can be found here: \url{https://huchzi.github.io/vf1/loadOctopus.html}.
 
-\subsection{The Jansonius map}
-The \pck{visualFields} package includes functions for the implementation of the Jansonius map \citep{IMF:Jan2012}, describing average never fiber bundle paths along the visual field from the optic nerve head (ONH). This model aids in comparisons between structural imaging and perimetry data in glaucoma. Functions are implemented to convert from Cartesian to the modified polar coordinates in the Jansonius map, the average bundle paths, and the angle of incidence of the average bundle passing through a specific visual field location on the ONH. One optical coherence tomgraphy (OCT) image modality consists of scanning along a circle centered at the center of the blind spot. A function returns the correspondence between angle of incidence of the average bundle on the ONH and the circular scan. These functions are:
+\subsection{The Jansonius map of the retinal nerve fiber layer  and RGC displacement}
+The \pkg{visualFields} package includes functions for the implementation of the Jansonius map \citep{IMF:Jan2012}, describing average never fiber bundle paths along the visual field from the optic nerve head (ONH). This model aids in comparisons between structural imaging and perimetry data in glaucoma. Functions are implemented to convert from Cartesian to the modified polar coordinates in the Jansonius map, the average bundle paths, and the angle of incidence of the average bundle passing through a specific visual field location on the ONH. One optical coherence tomgraphy (OCT) image modality consists of scanning along a circle centered at the center of the blind spot. A function returns the correspondence between angle of incidence of the average bundle on the ONH and the circular scan. These functions are:
 
 \begin{itemize}
   \item \code{cart2jpolar} converts the Cartesian coordinates to the polar coordinates in the distorted space used in the Jansonius map,
