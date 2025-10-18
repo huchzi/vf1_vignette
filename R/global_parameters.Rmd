@@ -1,0 +1,91 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Mean sensitivity
+
+This is straightforward. The MS is the mean of all sensitivity values (except blind spot).
+
+```{r msens, eval=FALSE}
+
+msens <- apply(vf, 1, mean)
+
+```
+
+\[\mathrm{MS} = \frac{1}{n}\sum_{i=1}^{n} S_i\]
+
+# SD of sensitivity
+
+Again, just standard deviation of all sensitivity values (except blind spot).
+
+```{r ssens, eval=FALSE}
+
+msens <- apply(vf, 1, mean)
+
+```
+
+\[\text{SS} = \sqrt{\frac{1}{n} \sum_{i=1}^{n} (S_i - \overline{S})^2}\]
+
+# Mean deviation
+
+For the HFA, this is a weighted mean of all deviation values (except blind spot). 
+
+```{r tdev, eval=FALSE}
+
+tmd   <- apply(td, 1, wtd.mean, weights = wtd / sum(wtd))
+
+```
+
+I did not understand, why the weights are normalized to 1 (=divided by their sum) only for tmd, but not for the other calculations. However, it seems to make no difference, because the formula for weighted calculation normalizes anyway.
+
+```{R}
+
+library(Hmisc)
+
+values <- rnorm(10, mean = 5)
+weights <- 1:10
+
+wtd.mean(values, weights = weights)
+wtd.mean(values, weights = weights/sum(weights))
+
+```
+
+\[\mathrm{MD} = \frac{\sum_{i=1}^{n} \frac{1}{Var(S_{normal})} \cdot TD_i}{\sum_{i=1}^{n} \frac{1}{Var(S_{normal})}}\]
+
+# SD of deviation
+
+```{r tsd, eval=FALSE}
+
+tsd   <- sqrt(apply(td, 1, wtd.var, weights = wtd))
+
+```
+
+# Mean pattern deviation
+
+This parameter is not used regularly, I think.
+
+I'm not sure how PD is calculated in the package. I think that Iván wrote in the manuscript, that it is calculated by subtracting the general height from the TD values. I cannot find it in the code. 
+
+In the PSD formula from the IPS guidelines, however, MD is subtracted from the TD.
+
+In the latter case, I have the feeling that PMD would result in 0. If you subtract the mean of a bunch of numbers from these numbers, the average results in 0?
+
+```{r pmd, eval=FALSE}
+
+pmd   <- apply(pd, 1, wtd.mean, weights = wpd)
+
+```
+
+# Pattern standard deviation
+
+```{r psd, eval=FALSE}
+
+psd   <- sqrt(apply(pd, 1, wtd.var, weights = wpd))
+
+```
+
+# Visual field index
+
+Should we document the calculation and the weights in detail. Iván, from your comments, it sounds like 
+

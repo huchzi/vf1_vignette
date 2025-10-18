@@ -459,40 +459,25 @@ Probabilities less than 0.05 suggest the location is likely abnormal.
 
 \subsection{Global indices}
 
-\begin{table}[h]
-\centering
-\caption{Global indices used in Humphrey perimetry. Note that calculation may differ slightly for other perimeters.}
-\label{tab:globalIndices}
-\begin{tabular}{|p{1.5cm}|p{3.5cm}|p{8cm}|}
-\hline
-\textbf{Variable} & \textbf{Meaning} & \textbf{Calculation} \\
-\hline
-\textbf{msens} & Mean sensitivity & \[\mathrm{MS} = \frac{\sum_{i=1}^{n} w_i \cdot S_i}{\sum_{i=1}^{n} w_i}\] \\
-\hline
-\textbf{ssens} & SD of sensitivity & \[\text{SS} = \sqrt{\frac{1}{n} \sum_{i=1}^{n} (S_i - \overline{S})^2}\] \\
-\hline
-\textbf{tmd} & Mean total deviation & \[\mathrm{MD} = \frac{\sum_{i=1}^{n} w_i \cdot TD_i}{\sum_{i=1}^{n} w_i}\] \\
-\hline
-\textbf{tsd} & SD of total deviation & \[\text{TSD} = \sqrt{\frac{1}{n} \sum_{i=1}^{n} (TD_i - \overline{TD})^2}\] \\
-\hline
-\textbf{pmd} & Mean pattern deviation & \[\mathrm{PMDS} = \frac{\sum_{i=1}^{n} w_i \cdot (TD_i - GH)}{\sum_{i=1}^{n} w_i}\] \\
-\hline
-\textbf{psd} & SD of pattern deviation & \[\text{PSD} = \sqrt{\frac{1}{n} \sum_{i=1}^{n} (PD_i - \overline{PD})^2}\] \\
-\hline
-\textbf{gh} & General height & \[GH = \mathrm{Median}\left( \left\{ TD_i \mid i \in \text{Top } k \right\} \right)\] \\
-\hline
-\textbf{vfi} & Visual field index (VFI) & see \citep{IMF:Ben2008} \\
-\hline
-\end{tabular}
-\end{table}
-
-Global indices summarize the visual field by applying summary statistics on sensitivity, total deviation or pattern deviation. These indices are shown in Table \ref{tab:globalIndices} and calculated using \code{getgl()}. The resulting \code{data.frame} also contains the patient's age, eye, and date of the test.
+Global indices summarize the visual field by applying summary statistics on sensitivity, total deviation or pattern deviation. These indices are shown in Table and calculated using \code{getgl()}. The resulting \code{data.frame} also contains the patient's age, eye, and date of the test.
 
 <<>>=
 gl <- getgl(example2)
 str(gl, max.level = 1, strict.width = "wrap")
 gl[, getlocini():ncol(gl)]
 @
+
+The mean sensitivity (MS) is just the arithmetic mean of the sensitivity values of all fields except the blind spot:
+
+\[\mathrm{MS} = \frac{1}{n}\sum_{i=1}^{n} S_i\]
+
+For the HFA, the mean deviation (MD) is the weighted mean of the total deviation values, weighted by the standard deviation of the normal values for each location. This results in more weighting of central locations:
+
+\[\mathrm{MD} = \frac{\sum_{i=1}^{n} \frac{1}{Var(S_{normal})} \cdot TD_i}{\sum_{i=1}^{n} \frac{1}{Var(S_{normal})}}\]
+
+For characterizing local variation of the visual field, the HFA uses pattern standard deviaton (PSD), which is the weighted standard deviation of the TD values minus the general height.
+
+The visual field index (VFI) is a global parameter that, similar to the MD, summarizes the overall loss of sensitivity, but should be less strongly affected by cataract \citep{IMF:Ben2008}. Catarct (opacification of the crystalline lens) is an important confounder in longitudinal follow-up of glaucoma patients, because surgical treatments for glaucoma may trigger cataract and cataract leads to deterioration of the visual field in the absence of glaucoma progression. It is expressed in percent, where a VFI of 100\%corresponds to a normal field and 0\% corresponds to blindness.
 
 Associated probabilities are calculated with \code{getglp()}:
 
