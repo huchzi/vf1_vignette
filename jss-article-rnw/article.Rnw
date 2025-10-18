@@ -101,7 +101,7 @@ In healthy vision, most visual functions, particularly light sensitivity, declin
 
 \emph{Perimetry} (visual field testing) quantifies the visual field by measuring a patient's sensitivity to light increments on a steady background at various locations within the field. There are different types of perimetry. Static automated perimetry (SAP) measures sensitivities at discrete locations in the field (in contrast to kinetic perimetry, which uses moving stimuli in order to determine lines of identical sensitivity, called isopters) and aims to estimate the hill of vision as accurately as possible within the constraints of clinical practice. It is performed inside a dome-shaped device (a Ganzfeld perimeter) to ensure a uniform distance between the eye and all stimulus locations. Campimetry is performed on a flat surface. With the advent of new technology, new campimetric visual field tests are being developed on flat screens on computers, tables, phones and, most notably, virtual-reality systems. Important terms used for perimetry are shown in Table 1.
 
-The \pkg{visualFields} package is only concerned wit static perimetry. For each location, a stimulus is varied according to the observer's responses in order to determine the threshold, i.e. the light increment where the stimulus is barely perceptible. Once a stimulus is presented, the observer has a set time window to press a button, signalling that the stimulus was perceived. A lack of response is taken to mean that the stimulus was not perceived, resulting in a simple yes/no outcome. Stimuli are presented several times for each location, but the presentations with different intensities are randomly interleaved between the different stimulus location, so that the observer does not know at which position in the visual field to expect the next presentation. Perimetry has scientific and clinical applications.
+The \pkg{visualFields} package is only concerned wit \emph{static perimetry}. In static perimetry, a stimulus is presented at discrete locations and varied according to the observer's responses in order to determine the threshold, i.e. the light increment where the stimulus is barely perceptible. Once a stimulus is presented, the observer has a set time window to press a button, signalling that the stimulus was perceived. A lack of response is taken to mean that the stimulus was not perceived, resulting in a simple yes/no outcome. Stimuli are presented several times for each location, but the presentations with different intensities are randomly interleaved between the different stimulus location, so that the observer does not know at which position in the visual field to expect the next presentation. Perimetry has scientific and clinical applications.
 
 \begin{table}[ht]
 \centering
@@ -381,7 +381,7 @@ Blind spot locations are returned as \code{NA}, as they should be removed from a
 
 The normative values also contains lookup tables for calculation of percentiles, and functions to compute TD, PD, and global indices, and their associated probability levels.
 
-The objects \code{tdfun}, \code{pdfun}, and \code{glfun} are functions to compute the TD, PD, and global indices. And \code{tdpfun}, \code{pdpfun}, and \code{glpfun} obtain the corresponding probability levels. The function \code{ghfun} computes the GH from TD values. These functions are not to be called directly. Instead, use the following functions:
+The returned object's list items \code{tdfun}, \code{pdfun}, and \code{glfun} are functions that compute the TD, PD, and global indices. And \code{tdpfun}, \code{pdpfun}, and \code{glpfun} obtain the corresponding probability levels. The function \code{ghfun} computes the GH from TD values. These functions are not to be called directly. Instead, use the following functions:
 \begin{itemize}
   \item \code{gettd}, \code{gettdp} for TD values and probability levels,
   \item \code{getpd}, \code{getpdp} for PD values and probability levels,
@@ -417,13 +417,15 @@ This section describes how to use the visual field package for pointwise analysi
 Total deviation is the difference between observed and expected sensitivity. Here, it is shown how it is calculated.
 
 <<>>=
+# Demonstration of principle
+
 example2 <- vffilter(vfpwgRetest24d2, id == "1", eye == "OD")[1,]
 age <- example2$age[1]
 normal_values <- getnv()$agem$model(age)[1:10]
 example2[,getvfcols()[1:10]] - normal_values
 @
 
-To calculate the total deviation, use the function from the normative values, do:
+To calculate the total deviation there is a dedicated function \code{gettd()} which calls the internal function from the \code{nv()} return object.
 
 <<>>=
 td <- gettd(example2)
@@ -431,19 +433,25 @@ td[, getvfcols()[1:10]]
 @
 
 Pattern deviation is obtained by subtracting the general height:
+
 <<>>=
+# Demonstration of principle
+
 gh <- getgh(td)
 pattern_defects <- td[, getvfcols()[1:10]] - gh
 @
 
-Or automatically:
+Again, there is a dedicated function \code{getpd()}:
+
 <<>>=
 pd <- getpd(td)
 pd[, getvfcols()[1:10]]
 @
 
 \subsubsection{Probability values}
-Even healthy eyes may show unusually small deviations. To interpret these values, we calculate the probability that a deviation reflects pathology using empirical distributions from the normative data \citep{IMF:Hei1987a, IMF:Heijl1991}. These are based on the look up tables for probabilities:
+
+Even healthy eyes may show unusually small total deviation values by chance. To interpret these values, we calculate the probability that a deviation reflects pathology using empirical distributions from the normative data \citep{IMF:Hei1987a, IMF:Heijl1991}. These are categorized into discrete probability levels:
+
 <<>>=
 getnv()$lut$probs
 @
@@ -475,9 +483,9 @@ For the HFA, the mean deviation (MD) is the weighted mean of the total deviation
 
 \[\mathrm{MD} = \frac{\sum_{i=1}^{n} \frac{1}{Var(S_{normal})} \cdot TD_i}{\sum_{i=1}^{n} \frac{1}{Var(S_{normal})}}\]
 
-For characterizing local variation of the visual field, the HFA uses pattern standard deviaton (PSD), which is the weighted standard deviation of the TD values minus the general height.
+For characterizing local variation of the visual field, the HFA uses pattern standard deviaton (PSD), which is the weighted standard deviation of the PD values (i.e. the TD values minus the general height GH).
 
-The visual field index (VFI) is a global parameter that, similar to the MD, summarizes the overall loss of sensitivity, but should be less strongly affected by cataract \citep{IMF:Ben2008}. Catarct (opacification of the crystalline lens) is an important confounder in longitudinal follow-up of glaucoma patients, because surgical treatments for glaucoma may trigger cataract and cataract leads to deterioration of the visual field in the absence of glaucoma progression. It is expressed in percent, where a VFI of 100\%corresponds to a normal field and 0\% corresponds to blindness.
+The visual field index (VFI) is a global parameter that, similar to the MD, summarizes the overall loss of sensitivity, but iss supposed to be less strongly affected by cataract \citep{IMF:Ben2008}. This is achieved by putting more weight on the specific locations. It is expressed in percent, where a VFI of 100\%corresponds to a normal field and 0\% corresponds to blindness. The Catarct (opacification of the crystalline lens) is an important confounder in longitudinal follow-up of glaucoma patients, because surgical treatments for glaucoma may trigger cataract and cataract leads to deterioration of the visual field in the absence of glaucoma progression. 
 
 Associated probabilities are calculated with \code{getglp()}:
 
@@ -520,7 +528,11 @@ The \code{glr()} function estimates a regression model for global indices. For t
 global_indices <- getgl(example3)
 global_linear_regression <- glr(global_indices[,c("date", "tmd")])
 str(global_linear_regression)
+
+# Regression slope
 global_linear_regression$sl
+
+# p-value
 global_linear_regression$pval
 @
 
@@ -596,31 +608,46 @@ ggplot(locmap, aes(x = x, y = y)) +
   coord_fixed(ratio = 1)
 @
 
-We can generate normative values for both grids with normative data \citep{IMF:Marin2018c}:
+We can generate normative values for both grids with data from normal subjects provided in the package (\code{vfctrIowaPC26} and \code{vfctrIowaPeri}) \citep{IMF:Marin2018c}:
+
 <<echo=TRUE>>=
 # Settings for the central perimetry test PC26
 setlocini(18)
 setlocmap(locmaps$pPC26)
 nvc <- nvgenerate(vfctrIowaPC26, method = "pointwise")
 gparc <- vfgpar(locmaps$pPC26$coord)
+@
+
+We just set the locmap and the graphical parameters, and we created normative data from the normal visual fields using \code{nvgenerate()}. We do the same for the peripheral locations:
+
+<<echo=TRUE>>=
 # Settings for the peripheral perimetry test Peri
 setlocini(17)
 setlocmap(locmaps$pPeri)
 nvp <- nvgenerate(vfctrIowaPeri, method = "pointwise")
 gparp <- vfgpar(locmaps$pPeri$coord)
+@
+
+The tesselation simits should be identical.
+
+<<echo=TRUE>>=
 # set the visualization limits to be the same
 gparc$tess$xlim <- gparp$tess$xlim
 gparc$tess$ylim <- gparp$tess$ylim
 @
 
 From here, the visualization for the joint analysis with the two different perimeters can be done as follows:
+
 <<echo=TRUE, fig=TRUE>>=
+# Periphery
 idx <- 13
 setlocini(17)
 setlocmap(locmaps$pPeri)
 setnv(nvp)
 setgpar(gparp)
 vfplot(vfctrIowaPeri[idx,])
+
+# Center
 setlocini(18)
 setlocmap(locmaps$pPC26)
 setnv(nvc)
@@ -651,6 +678,8 @@ Octopus data can be imported with \code{loadoctopus()}. However, no normative va
 Note that Octopus perimeters often use different standard settings. The current Octopus\,900 perimeter uses a different maximum luminance increment ($L_{\rm max} = 4000\,\rm asb$) \citep{CH:racette_visual_nodate}. Older Octopus perimeters frequently employed a background luminance of 4\,asb and a maximum luminance increment of $L_{\rm max} = 1000\,\rm asb$ \citep{CH:fankhauser_problems_1979}. Occasionally, these older settings are maintained on the Octopus\,900 to ensure comparability with prior examinations in patients with longitudinal follow-up examinations.
 
 Furthermore, deviatons are reported as defects, where a positive value (defect, instead of a negative deviation) denotes loss of sensitivity, and MD is calculated as the arithmetic mean instead of the weighted mean.
+
+Please refer to the guide "Visual Field Digest" provided by Haag-Streit, pp. 235-250, for a more comprehensive comparison \citep{CH:racette_visual_nodate}. 
 
 \subsection{The Jansonius map of the retinal nerve fiber layer  and RGC displacement}
 The \pkg{visualFields} package includes functions for the implementation of the Jansonius map \citep{IMF:Jan2012}, describing average never fiber bundle paths along the visual field from the optic nerve head (ONH). This model aids in comparisons between structural imaging and perimetry data in glaucoma. Functions are implemented to convert from Cartesian to the modified polar coordinates in the Jansonius map, the average bundle paths, and the angle of incidence of the average bundle passing through a specific visual field location on the ONH. One optical coherence tomgraphy (OCT) image modality consists of scanning along a circle centered at the center of the blind spot. A function returns the correspondence between angle of incidence of the average bundle on the ONH and the circular scan. These functions are:
