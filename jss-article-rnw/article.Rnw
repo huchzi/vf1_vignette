@@ -57,7 +57,7 @@ library("utils")
 \Address{
   Cord Huchzermeyer\\
   Department of Ophthalmology, University Hospital Erlangen \\
-  E-mail: \email{c.huchzermeyer@posteo.de}\\
+  E-mail: \email{cord.huchzermeyer@uk-erlangen.de}\\
   \\
   Giovanni Montesano\\
   NIHR Biomedical Research Centre, , Moorfields Eye Hospital NHS Foundation Trust and UCL Institute of Ophthalmology, London, United Kingdom \\
@@ -479,7 +479,7 @@ The mean sensitivity (MS) is just the arithmetic mean of the sensitivity values 
 
 \[\mathrm{MS} = \frac{1}{n}\sum_{i=1}^{n} S_i\]
 
-For the HFA, the mean deviation (MD) is the weighted mean of the total deviation values, weighted by the standard deviation of the normal values for each location. This results in more weighting of central locations:
+For the HFA, the mean deviation (MD) is the weighted mean of the total deviation values, weighted by the variance of the normal values for each location. This results in more weighting of central locations:
 
 \[\mathrm{MD} = \frac{\sum_{i=1}^{n} \frac{1}{Var(S_{normal})} \cdot TD_i}{\sum_{i=1}^{n} \frac{1}{Var(S_{normal})}}\]
 
